@@ -102,9 +102,9 @@ describe("PaperMiner integration", function () {
     const body = section!.querySelector('[data-type="body"]');
     assert.ok(body, "section body exists");
     const text = body!.textContent || "";
-    assert.include(text, "AI 摘要");
-    assert.include(text, "阅读对话");
-    assert.include(text, "撤稿");
+    assert.match(text, /AI (摘要|Summary)/);
+    assert.match(text, /(阅读对话|Chat with Paper)/);
+    assert.match(text, /(撤稿|Retraction)/);
     assert.isTrue(
       text.includes("EasyScholar") || text.includes("期刊"),
       "journal area should be rendered",

@@ -15,7 +15,13 @@ function fixturePath(): string {
 }
 
 const FIXTURE = fixturePath();
-const OUTPUT_DIR = "/Users/hao/Documents/dsh/paperminer/.scaffold/test-out";
+const OUTPUT_DIR = (() => {
+  const cwd = Services.dirsvc.get("CurWorkD", Ci.nsIFile).path;
+  const pathUtils = (globalThis as any).PathUtils;
+  return pathUtils?.join
+    ? pathUtils.join(cwd, ".scaffold", "test-out")
+    : `${cwd}/.scaffold/test-out`;
+})();
 
 function jsonResponse(content: string): Response {
   return new Response(
