@@ -29,15 +29,9 @@ describe("PaperMiner startup", function () {
       ours,
       `sections=${JSON.stringify(sections.map((section) => section.paneID))}`,
     );
-    // Icons must use Zotero's native item-pane icon set (16/20 px, context-fill).
-    assert.include(
-      String(ours.header.icon),
-      "chrome://zotero/skin/itempane/16/",
-    );
-    assert.include(
-      String(ours.sidenav.icon),
-      "chrome://zotero/skin/itempane/20/",
-    );
+    // The item pane uses PaperMiner's own 16/20 px brand icons.
+    assert.include(String(ours.header.icon), "content/icons/header-16.png");
+    assert.include(String(ours.sidenav.icon), "content/icons/sidenav-20.png");
   });
 
   it("registers the item tree column", function () {
