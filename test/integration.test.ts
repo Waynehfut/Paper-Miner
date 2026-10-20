@@ -237,6 +237,44 @@ describe("PaperMiner reader integration", function () {
     );
   });
 
+  it("renders inline translation inside the text selection popup", function () {
+    const listeners = (
+      (Zotero.Reader as any)._registeredListeners || []
+    ).filter(
+      (listener: any) =>
+        listener.type === "renderTextSelectionPopup" &&
+        listener.pluginID === config.addonID,
+    );
+    assert.isAtLeast(
+      listeners.length,
+      1,
+      "selection popup listener registered",
+    );
+    const groups: any[][] = [];
+    listeners[0].handler({
+      reader,
+      doc: readerDoc,
+      params: { annotation: { text: "inline translation test" } },
+      append: (...nodes: any[]) => groups.push(nodes),
+    });
+    const nodes = groups.flat();
+    const card = nodes.find((node: any) =>
+      node?.classList?.contains("pm-inline-translate"),
+    ) as HTMLElement | undefined;
+    assert.ok(card, "inline translation card should be appended");
+    assert.include(card!.textContent || "", "翻译");
+    assert.ok(
+      card!.querySelector(".pm-inline-translate-text"),
+      "translation output area should exist",
+    );
+    assert.isUndefined(
+      nodes.find((node: any) =>
+        node?.classList?.contains("pm-translate-popover"),
+      ),
+      "selection translation should not create a floating popover",
+    );
+  });
+
   it("opens and closes the docked chat panel", async function () {
     const { openChatPanel, closeChatPanel } =
       await import("../src/modules/ui/chatPanel");

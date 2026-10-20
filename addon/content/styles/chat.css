@@ -1046,3 +1046,91 @@
     display: none;
   }
 }
+
+/* Inline translation card injected into Zotero's own text-selection popup. */
+.pm-inline-translate {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 300px;
+  max-width: min(360px, 80vw);
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px solid var(--pm-border);
+  border-radius: 6px;
+  background: var(--pm-bg);
+  color: var(--pm-text);
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.pm-inline-translate-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pm-inline-translate-title {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pm-text-secondary);
+}
+
+.pm-inline-translate-status {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 10px;
+  color: var(--pm-text-muted);
+}
+
+.pm-inline-translate-text {
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--pm-text);
+  user-select: text;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pm-border-strong) transparent;
+}
+
+.pm-inline-translate-text.pm-inline-translate-error {
+  color: var(--pm-danger);
+}
+
+.pm-inline-translate-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.pm-inline-translate-btn {
+  min-height: 22px;
+  padding: 2px 8px;
+  border: 1px solid var(--pm-border);
+  border-radius: 4px;
+  background: var(--pm-bg-subtle);
+  color: var(--pm-text-secondary);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.pm-inline-translate-btn:hover {
+  background: var(--pm-bg-hover);
+  color: var(--pm-text);
+}
+
+.pm-inline-translate-btn[hidden] {
+  display: none;
+}

@@ -13,6 +13,8 @@ import { getItemTitle } from "../../utils/item";
 import { t } from "../../utils/i18n";
 import { errorToString, log } from "../../utils/log";
 import { getPref } from "../../utils/prefs";
+import { createAbortController } from "../../utils/abort";
+import { isTranslationConfigured, translateText } from "../ai/translate";
 import { injectStylesIntoDocument } from "../../utils/styles";
 import {
   closeTranslatePopover,
@@ -21,7 +23,6 @@ import {
 import {
   collectAnnotationText,
   getPaperItemForReader,
-  getPopupSelectionAnchor,
   getReaderDocument,
   type ReaderLike,
   type SelectionAnchor,
@@ -116,16 +117,6 @@ function openTranslation(
   });
 }
 
-function translateFromEvent(event: SelectionPopupEvent, text: string): void {
-  const anchor = getPopupSelectionAnchor(event);
-  if (!anchor) {
-    log("no anchor rect for selection translation");
-    return;
-  }
-  void injectStylesIntoDocument(anchor.doc);
-  openTranslation(event.reader, text, anchor);
-}
-
 function askAIFromReader(reader: ReaderLike, text: string): void {
   const item = getPaperItemForReader(reader);
   if (!item) {
@@ -139,6 +130,139 @@ function askAIFromReader(reader: ReaderLike, text: string): void {
 /* Reader event handlers                                               */
 /* ------------------------------------------------------------------ */
 
+function makeButton(
+  doc: Document,
+  label: string,
+  className = "pm-inline-translate-btn",
+): HTMLButtonElement {
+  const button = doc.createElementNS(HTML_NS, "button") as HTMLButtonElement;
+  button.type = "button";
+  button.className = className;
+  button.textContent = label;
+  return button;
+}
+
+function appendInlineTranslation(
+  doc: Document,
+  reader: ReaderLike,
+  text: string,
+): HTMLElement {
+  const card = doc.createElementNS(HTML_NS, "div") as HTMLDivElement;
+  card.className = "pm-inline-translate";
+  card.addEventListener("mousedown", (event) => event.stopPropagation());
+  card.addEventListener("pointerup", (event) => event.stopPropagation());
+
+  const head = doc.createElementNS(HTML_NS, "div") as HTMLDivElement;
+  head.className = "pm-inline-translate-head";
+  const title = doc.createElementNS(HTML_NS, "span") as HTMLSpanElement;
+  title.className = "pm-inline-translate-title";
+  title.textContent = t("chat-translate-title", "翻译");
+  const status = doc.createElementNS(HTML_NS, "span") as HTMLSpanElement;
+  status.className = "pm-inline-translate-status";
+  status.textContent = t("chat-translate-doing", "翻译中…");
+  head.append(title, status);
+
+  const output = doc.createElementNS(HTML_NS, "div") as HTMLDivElement;
+  output.className = "pm-inline-translate-text";
+  output.textContent = t("chat-translate-doing", "翻译中…");
+
+  const footer = doc.createElementNS(HTML_NS, "div") as HTMLDivElement;
+  footer.className = "pm-inline-translate-footer";
+  const copy = makeButton(doc, t("chat-copy", "复制"));
+  copy.hidden = true;
+  const settings = makeButton(doc, t("chat-open-settings", "打开设置"));
+  settings.hidden = true;
+  const ask = makeButton(doc, t("chat-ask-ai", "问 AI"));
+  footer.append(copy, settings, ask);
+  card.append(head, output, footer);
+
+  const controller = createAbortController();
+  let result = "";
+  const isAlive = () => {
+    if (controller.signal.aborted || !card.isConnected) {
+      if (!card.isConnected) controller.abort();
+      return false;
+    }
+    return true;
+  };
+  const setStatus = (value: string) => {
+    if (isAlive()) status.textContent = value;
+  };
+  const showError = (message: string) => {
+    if (!isAlive()) return;
+    output.classList.add("pm-inline-translate-error");
+    output.textContent = message;
+    status.textContent = "";
+    copy.hidden = true;
+    settings.hidden = !/(设置|API|Key|引擎|配置)/i.test(message);
+  };
+
+  const run = async () => {
+    if (!isTranslationConfigured()) {
+      showError(
+        t(
+          "chat-translate-not-configured",
+          "翻译引擎尚未配置，请先在 PaperMiner 设置中填写翻译引擎或 API Key。",
+        ),
+      );
+      return;
+    }
+    try {
+      const value = await translateText(text, {
+        signal: controller.signal,
+        targetLang: String(getPref("translateTarget") || "auto"),
+        context: getTranslationContext(reader),
+        onDelta: (delta) => {
+          if (!isAlive()) return;
+          result += delta;
+          output.textContent = result;
+          status.textContent = t("chat-translate-doing", "翻译中…");
+        },
+      });
+      if (!isAlive()) return;
+      result = String(value || result);
+      output.textContent =
+        result || t("chat-translate-empty", "没有获取到译文，请重试。");
+      output.classList.toggle("pm-inline-translate-error", !result);
+      status.textContent = result ? t("chat-translate-done", "翻译完成") : "";
+      copy.hidden = !result;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : errorToString(error);
+      showError(message);
+    }
+  };
+
+  copy.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!result) return;
+    void navigator.clipboard
+      ?.writeText(result)
+      .then(() => setStatus(t("chat-copied", "已复制")))
+      .catch((error: unknown) => log("copy translation failed:", error));
+  });
+  settings.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      Zotero.Utilities.Internal.openPreferences("paperminer-preference-pane");
+    } catch (error) {
+      log("open preferences failed:", errorToString(error));
+    }
+  });
+  ask.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    askAIFromReader(reader, text);
+  });
+
+  // Let Zotero append the card to the selection popup first, otherwise the
+  // initial "not configured" state is mistaken for a detached element.
+  setTimeout(() => void run(), 0);
+  return card;
+}
+
 function handleSelectionPopup(rawEvent: unknown): void {
   const event = rawEvent as SelectionPopupEvent;
   const text = String(event?.params?.annotation?.text || "").trim();
@@ -147,21 +271,29 @@ function handleSelectionPopup(rawEvent: unknown): void {
   if (!doc) return;
   void injectStylesIntoDocument(doc);
 
-  const container = doc.createElementNS(HTML_NS, "div") as HTMLDivElement;
-  container.className = "pm-translate-actions";
-  if (isPopupEnabled()) {
+  if (!isPopupEnabled()) {
+    const container = doc.createElementNS(HTML_NS, "div") as HTMLDivElement;
+    container.className = "pm-translate-actions";
+    const translate = createActionButton(
+      doc,
+      t("chat-translate-button", "翻译"),
+      () => {
+        translate.remove();
+        container.appendChild(appendInlineTranslation(doc, event.reader, text));
+      },
+    );
+    container.appendChild(translate);
     container.appendChild(
-      createActionButton(doc, t("chat-translate-button", "翻译"), () =>
-        translateFromEvent(event, text),
+      createActionButton(doc, t("chat-ask-ai", "问 AI"), () =>
+        askAIFromReader(event.reader, text),
       ),
     );
+    event.append(container);
+    return;
   }
-  container.appendChild(
-    createActionButton(doc, t("chat-ask-ai", "问 AI"), () =>
-      askAIFromReader(event.reader, text),
-    ),
-  );
-  event.append(container);
+  const popup = doc.querySelector(".selection-popup") as HTMLElement | null;
+  if (popup) popup.style.maxWidth = "none";
+  event.append(appendInlineTranslation(doc, event.reader, text));
 }
 
 function handleAnnotationContextMenu(rawEvent: unknown): void {
