@@ -127,6 +127,11 @@
 #paperminer-prefpane .pm-pref-link {
   color: var(--accent-blue, #2563eb);
   text-decoration: none;
+  cursor: pointer;
+}
+
+#paperminer-prefpane .pm-pref-link:hover {
+  text-decoration: underline;
 }
 
 #paperminer-prefpane .pm-pref-advanced {

@@ -34,6 +34,7 @@ import {
 } from "../../utils/fs";
 import { t } from "../../utils/i18n";
 import { log } from "../../utils/log";
+import { openURL } from "../../utils/ui";
 import { getPref, setPref } from "../../utils/prefs";
 
 type PrefKey = keyof _ZoteroTypes.Prefs["PluginPrefsMap"];
@@ -554,6 +555,18 @@ function flushTextPrefs(win: Window): void {
   if (modelMenu) setPref("llmModel", String(modelMenu.value || "") as never);
 }
 
+function bindExternalLinks(win: Window): void {
+  for (const id of ["pm-about-homepage", "pm-about-issues"]) {
+    const link = byId<HTMLAnchorElement>(win, id);
+    if (!link) continue;
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openURL(link.href);
+    });
+  }
+}
+
 async function bindActions(win: Window): Promise<void> {
   const testButton = byId<HTMLButtonElement>(win, "pm-llm-test");
   if (testButton) {
@@ -824,6 +837,7 @@ export async function initPreferencesUI(
 
   updateTranslateEngineVisibility(win);
   updateThinkingCapability(win);
+  bindExternalLinks(win);
   await bindActions(win);
 
   const versionLabel = byId(win, "pm-about-version");

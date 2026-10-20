@@ -290,6 +290,26 @@ describe("PaperMiner template and numeric controls", function () {
       await Zotero.Promise.delay(100);
       assert.isFalse(promptCard.hasAttribute("hidden"));
 
+      const launched: string[] = [];
+      const originalLaunch = Zotero.launchURL;
+      try {
+        (Zotero as any).launchURL = (url: string) => launched.push(String(url));
+        (doc.getElementById("pm-about-homepage") as HTMLAnchorElement).click();
+        (doc.getElementById("pm-about-issues") as HTMLAnchorElement).click();
+        assert.include(
+          launched.join("\n"),
+          "github.com/Waynehfut/Paper-Miner",
+          "project homepage link should open externally",
+        );
+        assert.include(
+          launched.join("\n"),
+          "github.com/Waynehfut/Paper-Miner/issues",
+          "issues link should open externally",
+        );
+      } finally {
+        Zotero.launchURL = originalLaunch;
+      }
+
       const temp = doc.getElementById("pm-llm-temperature") as HTMLInputElement;
       temp.value = "abc";
       temp.dispatchEvent(new win!.Event("input", { bubbles: true }));
