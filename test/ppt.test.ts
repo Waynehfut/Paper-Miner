@@ -223,6 +223,6 @@ describe("custom slide prompt", function () {
       customPrompt: "CUSTOM-SLIDE-RULE",
     });
     assert.include(messages[0].content, "CUSTOM-SLIDE-RULE");
-    assert.include(messages[0].content, "演示文稿设计师");
+    assert.include(messages[0].content, "一页一个主张");
   });
 });

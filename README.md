@@ -172,3 +172,12 @@ addon/           # manifest、bootstrap、XHTML、locale、CSS、图标
 ## License
 
 AGPL-3.0-or-later
+
+## Prompt design references
+
+PaperMiner's reading and slide prompts are original, but their structure was informed by current open agent-skill repositories:
+
+- [Ayanami0730/paper-read-skill](https://github.com/Ayanami0730/paper-read-skill) — evidence/claim separation, limitation and reproducibility checklists for deep paper reading (MIT).
+- [M1n-n9/academic-ppt-master](https://github.com/M1n-n9/academic-ppt-master) — assertion–evidence slide design, narrative-first planning and academic presentation quality standards (MIT).
+
+The prompts are adapted to PaperMiner's constraints: only the paper content provided by Zotero is available, and no external web search is performed during summary or slide generation.

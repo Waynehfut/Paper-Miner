@@ -24,23 +24,25 @@ export const PPT_MAX_TEXT_CHARS = 30000;
 export const SUMMARY_SECTIONS: Record<OutputLanguage, string[]> = {
   zh: [
     "一句话总结",
-    "研究问题",
-    "方法",
-    "数据与实验",
-    "主要结论",
-    "创新点",
-    "局限",
-    "启示",
+    "研究问题与背景",
+    "方法与关键设计",
+    "数据、实验与评估",
+    "关键证据与主要结果",
+    "创新点与贡献",
+    "局限、风险与反例",
+    "可复现性",
+    "启示与后续问题",
   ],
   en: [
     "TL;DR",
-    "Research Question",
-    "Method",
-    "Data & Experiments",
-    "Key Findings",
-    "Novelty",
-    "Limitations",
-    "Implications",
+    "Research Question & Context",
+    "Method & Key Design",
+    "Data, Experiments & Evaluation",
+    "Key Evidence & Results",
+    "Novelty & Contributions",
+    "Limitations, Risks & Counterexamples",
+    "Reproducibility",
+    "Implications & Open Questions",
   ],
 };
 
@@ -371,18 +373,26 @@ function summarySystemPrompt(
   const base =
     language === "zh"
       ? [
-          "你是一位严谨的学术论文阅读助手，专门为研究者撰写结构化阅读笔记。",
+          "你是一位严谨的学术阅读助手，兼具领域专家与审稿人的判断力。你的目标不是复述摘要，而是帮助研究者快速判断：论文解决了什么问题、证据是否支持结论、结果能否复现、与自己的研究有什么关系。",
           "规则：",
-          "1. 只依据用户提供的论文内容作答，不得编造数字、方法或结论；论文未提及的信息写“论文未提及”。",
-          "2. 使用 Markdown（## 二级标题、- 列表），不要输出代码块围栏，不要输出“好的”等客套话。",
-          "3. 保留关键术语原文（可在括号内附英文），保留重要数字、指标和数据集名称。",
+          "1. 只依据用户提供的论文内容作答，不得编造数字、方法、结论、引用或页码；论文未报告的信息写“原文未报告”。",
+          "2. 明确区分【作者主张】【原文证据】【推断】；自己的分析必须标注“（推断）”，不要把推断写成论文结论。",
+          "3. 每个关键结论尽量给出具体证据：数据集、样本量、评价指标、对比基线、关键数值、消融结果；不要用“效果显著”“具有重要意义”等空泛评价。",
+          "4. 先判断论文类型（方法/benchmark/实证/综述），再调整重点：方法论文看设计与消融，benchmark 论文看构建效度与覆盖，实证论文看识别策略与外部效度。",
+          "5. 批判性部分必须具体，至少指出 2 条真实局限，并说明需要什么证据才能改变结论；关注基线公平性、统计不确定性、外部效度与可复现性。",
+          "6. 使用 Markdown（## 二级标题、- 列表或表格），不要输出代码块围栏，不要输出“好的”等客套话。",
+          "7. 保留关键术语原文（可在括号内附英文），保留重要数字、指标和数据集名称。信息密度优先，不复述大段原文。",
         ].join("\n")
       : [
-          "You are a rigorous academic reading assistant producing structured reading notes for researchers.",
+          "You are a rigorous academic reading assistant with the judgment of both a domain expert and a peer reviewer. Your job is not to paraphrase the abstract, but to help a researcher decide: what problem the paper solves, whether the evidence supports its claims, whether it can be reproduced, and how it relates to their work.",
           "Rules:",
-          '1. Use only the provided paper content. Never invent numbers, methods or conclusions; write "Not reported in the paper" when information is missing.',
-          "2. Output Markdown (## headings, - lists). No code fences, no conversational filler.",
-          "3. Keep technical terms, important numbers, metrics and dataset names verbatim.",
+          '1. Use only the provided paper content. Never invent numbers, methods, conclusions, citations or page numbers; write "Not reported in the paper" when information is missing.',
+          "2. Distinguish [author claim], [original evidence] and [inference]. Mark your own analysis as (inference); never present inference as a paper conclusion.",
+          '3. Support each key conclusion with concrete evidence: dataset, sample size, metric, baselines, key numbers, ablation results. Avoid empty phrases such as "significant impact" or "great importance".',
+          "4. Identify the paper type (method / benchmark / empirical / survey) and adapt: design and ablations for methods; construct validity and coverage for benchmarks; identification and external validity for empirical work.",
+          "5. The critique must be concrete: at least two real limitations, plus what evidence would change the conclusion. Consider baseline fairness, statistical uncertainty, external validity and reproducibility.",
+          "6. Output Markdown (## headings, - lists or tables). No code fences, no conversational filler.",
+          "7. Keep technical terms, important numbers, metrics and dataset names verbatim. Prefer information density over restating long passages.",
         ].join("\n");
   const extra = String(customPrompt || "").trim();
   if (!extra) return base;
@@ -427,8 +437,18 @@ export function buildSingleSummaryMessages(
     '"""',
     "",
     language === "zh"
-      ? `请严格按以下小节输出（每节 2-5 句或 3-6 条要点，全文约 800-1400 字）：`
-      : `Use exactly these sections (2-5 sentences or 3-6 bullets each, 500-900 words total):`,
+      ? [
+          "请严格按以下小节输出（每节 2-6 句或 3-6 条要点，全文约 1000-1600 字）：",
+          "在【关键证据与主要结果】中，用“结论 → 证据 → 强度（强/中/弱）”的形式列出 2-4 条关键主张。",
+          "在【局限、风险与反例】中区分作者承认的局限与你独立发现的问题；在【可复现性】中说明数据、代码、超参数和评估细节是否充分。",
+          "如果论文类型是方法论文，突出架构/训练/推理设计；如果是 benchmark，突出数据构建、标注质量与评测协议；如果是综述，突出覆盖范围与论点组织。",
+        ].join("\n")
+      : [
+          "Use exactly these sections (2-6 sentences or 3-6 bullets each, 700-1100 words total):",
+          'In "Key Evidence & Results", list 2-4 key claims as "claim -> evidence -> strength (strong/medium/weak)".',
+          'In "Limitations, Risks & Counterexamples", separate the authors’ stated limitations from your independent critique; in "Reproducibility", assess data, code, hyperparameters and evaluation details.',
+          "If this is a method paper, emphasize architecture/training/inference design; for a benchmark, data construction, annotation quality and protocol; for a survey, coverage and argument organization.",
+        ].join("\n"),
     sectionList(language),
   ].join("\n");
   return [
@@ -462,12 +482,12 @@ export function buildChunkNotesMessages(
     "",
     language === "zh"
       ? [
-          "提取这一部分的关键信息，覆盖：研究背景与问题、方法或模型、数据与实验设置、主要结果（含关键数字）、结论与贡献、局限。",
-          "输出 Markdown 要点列表，最多 12 条，每条不超过 60 字；保留术语原文和关键数字，不要编造。",
+          "提取这一部分的关键信息，重点覆盖：研究问题、方法/模型的关键设计、数据与实验设置、对比基线、评价指标、带数字的主要结果、作者主张及其证据、局限与可复现性细节。",
+          "输出 Markdown 要点列表（最多 14 条，每条不超过 70 字）；区分【作者主张】与【证据】，保留术语和数字，绝不编造。",
         ].join("\n")
       : [
-          "Extract the key information in this part, covering: background & problem, method/model, data & experimental setup, main results (with numbers), conclusions & contributions, limitations.",
-          "Output a Markdown bullet list, at most 12 bullets, each under 30 words. Keep terms and numbers verbatim; never invent.",
+          "Extract the key information in this part, focusing on: research question, key design of the method/model, data and experimental setup, baselines, metrics, main results with numbers, author claims and their evidence, limitations and reproducibility details.",
+          "Output a Markdown bullet list (at most 14 bullets, each under 35 words). Separate [author claim] from [evidence]; keep terms and numbers verbatim; never invent.",
         ].join("\n"),
     "",
     `【${language === "zh" ? "正文片段" : "Text"} ${index}/${total}】`,
@@ -512,8 +532,16 @@ export function buildMergeSummaryMessages(
     chunks,
     "",
     language === "zh"
-      ? "要求：综合全部分段信息，避免简单堆叠；严格按以下小节输出（每节 2-5 句或 3-6 条要点，全文约 800-1400 字）："
-      : "Requirements: combine all partial notes instead of concatenating them; use exactly these sections (2-5 sentences or 3-6 bullets each, 500-900 words total):",
+      ? [
+          "要求：综合全部分段信息，避免简单堆叠；严格按以下小节输出（每节 2-6 句或 3-6 条要点，全文约 1000-1600 字）。",
+          "如果不同片段的结论/数字冲突，保留冲突并说明可能原因；如果分段笔记没有覆盖某个小节，明确写“原文未报告/信息不足”，不要补写。",
+          "批判性评价必须具体，并说明需要什么证据才能改变结论。",
+        ].join("\n")
+      : [
+          "Requirements: synthesise all partial notes instead of concatenating them; use exactly these sections (2-6 sentences or 3-6 bullets each, 700-1100 words total).",
+          'If notes conflict on a conclusion or number, preserve the conflict and explain possible reasons; if a section is not covered by the notes, write "not reported / insufficient information" instead of filling it in.',
+          "The critique must be concrete and state what evidence would change the conclusion.",
+        ].join("\n"),
     sectionList(language),
   ].join("\n");
   return [
@@ -540,8 +568,14 @@ export function buildPptOutlineMessages(
   const customPrompt = String(options.customPrompt || "").trim();
   const system =
     (language === "zh"
-      ? "你是一位学术会议演示文稿设计师，擅长把论文提炼成简洁、有逻辑的幻灯片大纲。你只输出 JSON。"
-      : "You are an academic presentation designer who turns papers into concise, logical slide outlines. You output JSON only.") +
+      ? [
+          "你是一位资深学术会议演讲教练与幻灯片设计师，擅长把论文变成“一页一个主张”的叙事。你只输出 JSON。",
+          "原则：先建立故事线，再设计每一页；标题必须是听众能记住的断言，而不是“方法”“实验结果”这类主题词；每个要点都要有证据或具体含义；不要把论文段落搬上幻灯片。",
+        ].join("\n")
+      : [
+          "You are a senior academic presentation coach and slide designer. You turn papers into a one-message-per-slide narrative and output JSON only.",
+          'Principles: design the storyline first, then each slide; every title must be a memorable assertion, not a topic label like "Method" or "Results"; each bullet must carry evidence or a concrete implication; never paste paper paragraphs onto slides.',
+        ].join("\n")) +
     (customPrompt
       ? language === "zh"
         ? `\n\n用户额外要求（优先遵守）：\n${customPrompt}`
@@ -551,7 +585,7 @@ export function buildPptOutlineMessages(
   const user =
     language === "zh"
       ? [
-          `请为以下论文设计一份 16:9 演示文稿的内容大纲，共 ${slideCount} 张内容幻灯片（不含封面、目录、结束页）。`,
+          `请为以下论文设计一份 16:9 演示文稿的内容大纲，共 ${slideCount} 张内容幻灯片（封面、目录、结束页由程序另行添加，不要计入）。`,
           "",
           `【${labels.paperInfo}】`,
           metaBlock(meta, language),
@@ -561,19 +595,31 @@ export function buildPptOutlineMessages(
           body,
           '"""',
           "",
+          "先确定目标听众与全篇一句话核心信息，再按以下故事线分配页面（按论文实际内容取舍）：",
+          "1. 开场：问题/现象/为什么现在重要（1 页，最好用一个具体例子或反直觉事实）",
+          "2. 研究空白或核心挑战（1 页）",
+          "3. 核心思路与方法（1-2 页，突出关键设计，不罗列所有模块）",
+          "4. 数据与实验设置（1 页，只保留理解结果所必需的）",
+          "5. 关键结果（2-3 页，包含基线、对比数字、消融或案例证据）",
+          "6. 机理/边界条件/失败模式（按需 1 页）",
+          "7. 局限与反例（1 页，具体说明什么情况下结论不成立）",
+          "8. 结论、启示与下一步（1 页）",
+          "",
           "要求：",
           "1. 只输出一个 JSON 对象，不要 Markdown 代码围栏，不要任何解释文字。",
           "2. JSON 结构：",
           "{",
-          '  "title": "演示标题（不超过 60 字）",',
-          '  "subtitle": "副标题（可选，不超过 40 字）",',
+          '  "title": "演示标题（不超过 36 字）",',
+          '  "subtitle": "副标题（可选，不超过 28 字）",',
           '  "slides": [',
-          '    { "title": "幻灯片标题（不超过 30 字）", "bullets": ["要点 1", "要点 2", "要点 3"], "speakerNotes": "可选，80 字以内" }',
+          '    { "title": "断言式标题（不超过 30 字）", "bullets": ["要点 1", "要点 2", "要点 3"], "speakerNotes": "2-4 句讲稿：先说什么、证据是什么、如何过渡；可附建议视觉" }',
           "  ]",
           "}",
-          "3. 每张幻灯片 3-6 个要点，每个要点不超过 45 个汉字；要点具体，保留关键数字和术语，不要编造。",
-          "4. 内容逻辑：研究背景 → 研究问题 → 方法 → 数据与实验 → 结果 → 结论与创新 → 局限与启示（按论文实际内容取舍）。",
-          "5. 全部使用简体中文。",
+          "3. 标题必须是完整断言或问题，例如“检索增强把长文档问答准确率提升 18%”，不要写“实验结果”。",
+          "4. 每页 3-5 个要点，每个要点不超过 40 个汉字；要点之间不重复；保留关键数字、数据集和术语，不编造原文没有的数字。",
+          "5. speakerNotes 写 2-4 句，给出讲稿、证据/注意点和到下一页的过渡；可加“建议视觉：…”说明建议的图/表。",
+          "6. 结果页必须让听众看出与谁比较、提升/下降多少；局限页必须具体，不要写“未来工作很多”这类空话。",
+          "7. 全部使用简体中文，避免大段文字和 bullet 堆砌。",
         ].join("\n")
       : [
           `Design a 16:9 slide outline for the following paper with ${slideCount} content slides (cover, agenda and closing slides are added separately).`,
@@ -586,6 +632,16 @@ export function buildPptOutlineMessages(
           body,
           '"""',
           "",
+          "First decide the audience and the one-sentence core message, then allocate slides along this storyline (drop what does not apply):",
+          "1. Opening: the problem, why it matters now (1 slide; use a concrete example or counter-intuitive fact)",
+          "2. Gap or core challenge (1 slide)",
+          "3. Key idea and method (1-2 slides; emphasize the key design, not every module)",
+          "4. Data and experimental setup (1 slide; only what is needed to interpret results)",
+          "5. Key results (2-3 slides; include baselines, deltas, ablations or case evidence)",
+          "6. Mechanism / boundary conditions / failure modes (1 slide if needed)",
+          "7. Limitations and counterexamples (1 slide; state when the conclusion would not hold)",
+          "8. Conclusion, implications and next steps (1 slide)",
+          "",
           "Requirements:",
           "1. Output exactly one JSON object. No Markdown code fences, no explanation.",
           "2. JSON structure:",
@@ -593,12 +649,14 @@ export function buildPptOutlineMessages(
           '  "title": "Deck title (max 12 words)",',
           '  "subtitle": "Optional subtitle (max 10 words)",',
           '  "slides": [',
-          '    { "title": "Slide title (max 8 words)", "bullets": ["Point 1", "Point 2", "Point 3"], "speakerNotes": "optional, max 50 words" }',
+          '    { "title": "Assertion-style title (max 8 words)", "bullets": ["Point 1", "Point 2", "Point 3"], "speakerNotes": "2-4 sentences: what to say, evidence, transition; optional visual suggestion" }',
           "  ]",
           "}",
-          "3. 3-6 bullets per slide; each bullet at most 15 words. Be specific, keep numbers and terms, never invent.",
-          "4. Storyline: background → problem → method → data & experiments → results → conclusions & novelty → limitations & implications (drop what does not apply).",
-          "5. Use English.",
+          '3. Titles must be complete assertions or questions, e.g. "Retrieval raises long-document QA accuracy by 18%", not "Results".',
+          "4. 3-5 bullets per slide; each bullet at most 20 words; no repeated points; keep numbers, datasets and terms; never invent numbers absent from the paper.",
+          '5. Write 2-4 sentences of speaker notes: the spoken point, evidence/caveat, and transition; optionally add "Suggested visual: ...".',
+          "6. Results slides must show what is compared and how large the delta is; limitation slides must be concrete, not generic future-work filler.",
+          "7. Use English. Avoid text walls and bullet dumping.",
         ].join("\n");
   return [
     { role: "system", content: system },
