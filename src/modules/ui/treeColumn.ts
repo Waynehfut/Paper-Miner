@@ -124,6 +124,18 @@ function dataProvider(item: Zotero.Item): string {
   }
 }
 
+function partCategory(part: string): string {
+  const text = part.trim();
+  const upper = text.toUpperCase();
+  if (text.includes("预警")) return "warning";
+  if (/^[1-4]区|^Q[1-4]|TOP/.test(upper)) return "quartile";
+  if (/^(IF|5年IF|JCI)/.test(upper)) return "metric";
+  if (/(CSSCI|北大核心|CSCD|科技核心|梯队)/.test(text)) return "cn";
+  if (/(CCF|FMS|AJG|ABDC|FT50|UTD24)/.test(upper)) return "ranking";
+  if (/(^|\s)(EI|SSCI|AHCI|ESI)(\s|$)/.test(upper)) return "index";
+  return "neutral";
+}
+
 function renderCell(
   _index: number,
   data: string,
@@ -133,32 +145,43 @@ function renderCell(
 ): HTMLElement {
   const cell = htmlEl(doc, "span", {
     class: `cell ${column?.className || ""} pm-journal-cell`.trim(),
-    text: data || "",
     title: data || "",
   });
   if (!data) {
     cell.classList.add("pm-journal-cell-empty");
     return cell;
   }
-  const normalized = data.toUpperCase();
-  if (data.includes("预警")) {
-    cell.classList.add("pm-journal-cell-bad");
-  } else if (
-    normalized.includes("1区") ||
-    normalized.includes("Q1") ||
-    normalized.includes("TOP")
-  ) {
-    cell.classList.add("pm-journal-cell-good");
-  } else if (
-    normalized.includes("2区") ||
-    normalized.includes("Q2") ||
-    normalized.includes("3区") ||
-    normalized.includes("Q3")
-  ) {
-    cell.classList.add("pm-journal-cell-info");
-  } else {
-    cell.classList.add("pm-journal-cell-neutral");
+  cell.setAttribute("aria-label", data);
+  const parts = data
+    .split(/\s*·\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const groups: Array<{ category: string; parts: string[] }> = [];
+  for (const part of parts) {
+    const category = partCategory(part);
+    const last = groups[groups.length - 1];
+    if (last && last.category === category) {
+      last.parts.push(part);
+    } else {
+      groups.push({ category, parts: [part] });
+    }
   }
+  groups.forEach((group, index) => {
+    if (index > 0) {
+      cell.appendChild(
+        htmlEl(doc, "span", {
+          class: "pm-journal-cell-sep",
+          text: "·",
+        }),
+      );
+    }
+    cell.appendChild(
+      htmlEl(doc, "span", {
+        class: `pm-journal-cell-part pm-journal-cell-part-${group.category}`,
+        text: group.parts.join(" · "),
+      }),
+    );
+  });
   return cell;
 }
 
@@ -237,7 +260,7 @@ export async function registerJournalColumn(): Promise<void> {
       label: t("journal-column-label", "期刊"),
       pluginID: config.addonID,
       enabledTreeIDs: ["main"],
-      width: "120",
+      width: "260",
       minWidth: 80,
       showInColumnPicker: true,
       zoteroPersist: ["width", "hidden", "sortDirection"],

@@ -231,7 +231,10 @@ describe("PaperMiner reader integration", function () {
     assert.include(labels.join("|"), "AI 阅读摘要");
     assert.include(labels.join("|"), "汇报 PPT");
     assert.include(labels.join("|"), "阅读对话");
-    assert.include(labels.join("|"), "刷新期刊信息");
+    assert.match(
+      labels.join("|"),
+      /(刷新期刊信息|Refresh journal information)/,
+    );
   });
 
   it("opens and closes the docked chat panel", async function () {
