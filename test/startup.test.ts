@@ -29,9 +29,10 @@ describe("PaperMiner startup", function () {
       ours,
       `sections=${JSON.stringify(sections.map((section) => section.paneID))}`,
     );
-    // The item pane uses PaperMiner's vector brand icon.
-    assert.include(String(ours.header.icon), "content/icons/paperminer.svg");
-    assert.include(String(ours.sidenav.icon), "content/icons/paperminer.svg");
+    // Item-pane icons need intrinsic 16/20 px dimensions; the source SVG is
+    // 512 px and would otherwise render oversized in Zotero's side nav.
+    assert.include(String(ours.header.icon), "content/icons/header-16.png");
+    assert.include(String(ours.sidenav.icon), "content/icons/sidenav-20.png");
   });
 
   it("registers the item tree column", function () {
