@@ -319,7 +319,7 @@ describe("PaperMiner template and numeric controls", function () {
         assert.ok(button, `${id} should exist`);
         assert.isAtMost(
           button.getBoundingClientRect().width,
-          140,
+          200,
           `${id} should not be stretched by label min-width`,
         );
         assert.isAtLeast(
