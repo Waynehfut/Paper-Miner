@@ -144,3 +144,13 @@
 #paperminer-prefpane .pm-pref-number {
   text-align: right;
 }
+
+#paperminer-prefpane .pm-pref-unit {
+  margin-inline-start: 4px;
+  margin-inline-end: 12px;
+  align-self: center;
+}
+
+#paperminer-prefpane .pm-pref-number {
+  align-self: center;
+}
