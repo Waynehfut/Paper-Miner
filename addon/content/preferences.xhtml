@@ -487,23 +487,25 @@
           data-l10n-id="paperminer-pref-ppt-open"
         ></checkbox>
       </hbox>
-      <hbox align="center">
+      <vbox>
         <label
           data-l10n-id="paperminer-pref-ppt-dir"
           control="pm-ppt-dir"
         ></label>
-        <html:input
-          id="pm-ppt-dir"
-          class="pm-pref-input"
-          type="text"
-          flex="1"
-          placeholder="留空则保存到 下载/PaperMiner"
-        ></html:input>
-        <button
-          id="pm-ppt-pick-dir"
-          data-l10n-id="paperminer-pref-browse"
-        ></button>
-      </hbox>
+        <hbox align="center" class="pm-pref-path-row">
+          <html:input
+            id="pm-ppt-dir"
+            class="pm-pref-input"
+            type="text"
+            flex="1"
+            placeholder="留空则保存到 下载/PaperMiner"
+          ></html:input>
+          <button
+            id="pm-ppt-pick-dir"
+            data-l10n-id="paperminer-pref-browse"
+          ></button>
+        </hbox>
+      </vbox>
       <vbox>
         <label
           data-l10n-id="paperminer-pref-ppt-prompt"

@@ -254,3 +254,20 @@
 #paperminer-prefpane .pm-pref-number {
   align-self: center;
 }
+
+#paperminer-prefpane .pm-pref-path-row {
+  gap: 6px;
+  margin-top: 4px;
+}
+
+#paperminer-prefpane .pm-pref-path-row #pm-ppt-pick-dir {
+  flex: 0 0 auto;
+  min-width: 86px;
+  height: 26px;
+  margin: 0;
+  align-self: center;
+}
+
+#paperminer-prefpane .pm-pref-path-row #pm-ppt-dir {
+  min-width: 0;
+}

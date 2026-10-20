@@ -309,6 +309,24 @@ describe("PaperMiner template and numeric controls", function () {
         Zotero.launchURL = originalLaunch;
       }
 
+      const dirInput = doc.getElementById("pm-ppt-dir") as HTMLInputElement;
+      const dirButton = doc.getElementById(
+        "pm-ppt-pick-dir",
+      ) as HTMLButtonElement;
+      assert.ok(dirInput && dirButton, "PPT directory controls should exist");
+      assert.isAtLeast(dirInput.getBoundingClientRect().width, 150);
+      assert.isAtLeast(dirButton.getBoundingClientRect().width, 60);
+      assert.isAtMost(
+        Math.abs(
+          dirInput.getBoundingClientRect().top +
+            dirInput.getBoundingClientRect().height / 2 -
+            (dirButton.getBoundingClientRect().top +
+              dirButton.getBoundingClientRect().height / 2),
+        ),
+        2,
+        "PPT directory button should align with the input",
+      );
+
       const temp = doc.getElementById("pm-llm-temperature") as HTMLInputElement;
       temp.value = "abc";
       temp.dispatchEvent(new win!.Event("input", { bubbles: true }));
