@@ -17,12 +17,12 @@
 
 ## 2. 文件所有权（不要修改他人文件）
 
-| 模块 | 负责人 | 写入范围 |
-| --- | --- | --- |
-| 期刊分区 + 撤稿 + 对应 UI | 负责人 A | `src/modules/journal/**`、`src/modules/retraction/**`、`src/modules/ui/journalSection.ts`、`treeColumn.ts`、`readerBanner.ts`、`contextMenu.ts`、`addon/content/styles/journal.css`、`test/journal*.test.ts`、`test/retraction*.test.ts` |
-| AI 服务（正文/摘要/PPT/翻译） | 负责人 B | `src/modules/ai/paperText.ts`、`summary.ts`、`ppt.ts`、`translate.ts`、`prompts.ts`、`src/modules/ai/outline.ts`（可新建）、`addon/content/styles/ai.css`、`test/ai*.test.ts`、`test/ppt*.test.ts` |
-| 阅读对话 UI + 划词交互 | 负责人 C | `src/modules/chat/**`、`src/modules/ui/chatPanel.ts`、`selectionPopup.ts`、`addon/content/styles/chat.css`、`test/chat*.test.ts` |
-| 设置界面、i18n、集成、测试 | Lead | 其余全部（`src/hooks.ts`、`src/modules/plugin.ts`、`src/modules/preferences/**`、`addon/content/preferences.xhtml`、`addon/locale/**`、`src/utils/**`、`test/startup.test.ts` 等） |
+| 模块                          | 负责人   | 写入范围                                                                                                                                                                                                                                 |
+| ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 期刊分区 + 撤稿 + 对应 UI     | 负责人 A | `src/modules/journal/**`、`src/modules/retraction/**`、`src/modules/ui/journalSection.ts`、`treeColumn.ts`、`readerBanner.ts`、`contextMenu.ts`、`addon/content/styles/journal.css`、`test/journal*.test.ts`、`test/retraction*.test.ts` |
+| AI 服务（正文/摘要/PPT/翻译） | 负责人 B | `src/modules/ai/paperText.ts`、`summary.ts`、`ppt.ts`、`translate.ts`、`prompts.ts`、`src/modules/ai/outline.ts`（可新建）、`addon/content/styles/ai.css`、`test/ai*.test.ts`、`test/ppt*.test.ts`                                       |
+| 阅读对话 UI + 划词交互        | 负责人 C | `src/modules/chat/**`、`src/modules/ui/chatPanel.ts`、`selectionPopup.ts`、`addon/content/styles/chat.css`、`test/chat*.test.ts`                                                                                                         |
+| 设置界面、i18n、集成、测试    | Lead     | 其余全部（`src/hooks.ts`、`src/modules/plugin.ts`、`src/modules/preferences/**`、`addon/content/preferences.xhtml`、`addon/locale/**`、`src/utils/**`、`test/startup.test.ts` 等）                                                       |
 
 文件内已有 stub（签名 + 注释）。直接实现并替换 body，**保持导出名和签名**；确需改签名先发消息给 Lead。
 
