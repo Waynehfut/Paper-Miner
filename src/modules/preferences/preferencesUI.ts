@@ -2,9 +2,9 @@ import { config } from "../../../package.json";
 import { getLLMConfig } from "../ai/config";
 import {
   getDefaultTemplates,
-  loadQuickPhrases,
+  loadSkillRows,
   parseSkillsPayload,
-  saveQuickPhrases,
+  saveSkillRows,
 } from "../chat/quickPhrases";
 import type { QuickPhrase } from "../chat/quickPhrases";
 import { fetchAvailableModels, testLLMConnection } from "../ai/llm";
@@ -246,7 +246,7 @@ function renderSkillTable(win: Window): void {
   const container = byId<HTMLElement>(win, "pm-chat-skill-table");
   if (!container) return;
   const doc = win.document;
-  let skills: QuickPhrase[] = loadQuickPhrases();
+  let skills: QuickPhrase[] = loadSkillRows();
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
 
   const validSkills = () =>
@@ -254,18 +254,21 @@ function renderSkillTable(win: Window): void {
       .map((skill) => ({
         label: String(skill.label || "").trim() || "未命名技能",
         prompt: String(skill.prompt || "").trim(),
+        ...(skill.global ? { global: true } : {}),
       }))
       .filter((skill) => skill.prompt);
 
   const persist = (immediate = false) => {
     if (saveTimer) clearTimeout(saveTimer);
     const save = () => {
-      saveQuickPhrases(skills);
+      saveSkillRows(skills);
+      const valid = validSkills();
       setStatus(
         win,
         "pm-chat-skill-status",
         t("chat-skills-saved", "已保存技能", {
-          count: validSkills().length,
+          count: valid.length,
+          global: valid.filter((skill) => skill.global).length,
         }),
         true,
       );
@@ -287,10 +290,17 @@ function renderSkillTable(win: Window): void {
     for (const label of [
       t("chat-skill-name", "技能名称"),
       t("chat-skill-prompt", "指令提示词"),
+      t("chat-skill-global", "每次生效"),
       t("chat-skill-actions", "操作"),
     ]) {
       const cell = make("span");
       cell.textContent = label;
+      if (label === t("chat-skill-global", "每次生效")) {
+        cell.title = t(
+          "chat-skill-global-tip",
+          "勾选后作为系统提示词，每轮对话都生效；不勾选则作为对话模板，只在选择时发送。",
+        );
+      }
       head.appendChild(cell);
     }
     container.appendChild(head);
@@ -311,6 +321,20 @@ function renderSkillTable(win: Window): void {
         "chat-skill-prompt-placeholder",
         "例如：请从审稿人角度指出论文的主要缺陷，并给出修改建议。",
       );
+      const globalWrap = make("label");
+      globalWrap.className = "pm-skill-global";
+      globalWrap.title = t(
+        "chat-skill-global-tip",
+        "勾选后作为系统提示词，每轮对话都生效；不勾选则作为对话模板，只在选择时发送。",
+      );
+      const globalCheckbox = make("input");
+      globalCheckbox.type = "checkbox";
+      globalCheckbox.className = "pm-skill-global-check";
+      globalCheckbox.checked = Boolean(skill.global);
+      const globalText = make("span");
+      globalText.textContent = t("chat-skill-global-short", "全局");
+      globalWrap.append(globalCheckbox, globalText);
+
       const remove = make("button");
       remove.className = "pm-skill-remove";
       remove.type = "button";
@@ -328,12 +352,16 @@ function renderSkillTable(win: Window): void {
       });
       name.addEventListener("blur", () => persist(true));
       prompt.addEventListener("blur", () => persist(true));
+      globalCheckbox.addEventListener("change", () => {
+        skills[index] = { ...skills[index], global: globalCheckbox.checked };
+        persist(true);
+      });
       remove.addEventListener("click", () => {
         skills.splice(index, 1);
         draw();
         persist(true);
       });
-      row.append(name, prompt, remove);
+      row.append(name, prompt, globalWrap, remove);
       container.appendChild(row);
     });
 
@@ -774,7 +802,6 @@ export async function initPreferencesUI(
   bindNumber(win, "pm-chat-history", "chatMaxHistory");
   bindNumber(win, "pm-chat-temp", "chatTemperature", false);
   bindCheckbox(win, "pm-chat-persist", "chatPersist");
-  bindTextarea(win, "pm-chat-system-prompt", "chatSystemPrompt");
 
   bindNumber(win, "pm-ppt-slides", "pptSlides");
   bindTextarea(win, "pm-ppt-prompt", "pptPrompt");

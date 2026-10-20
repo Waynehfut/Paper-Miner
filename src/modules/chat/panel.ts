@@ -31,7 +31,7 @@ import {
   type ChatContextResult,
 } from "./context";
 import { renderMarkdown } from "./markdown";
-import { loadQuickPhrases } from "./quickPhrases";
+import { getSystemInstructions, loadQuickPhrases } from "./quickPhrases";
 import {
   buildSession,
   clearChatSession,
@@ -916,7 +916,7 @@ export class ChatPanel {
       const messages = buildChatMessages({
         systemPrompt: buildSystemPrompt(
           context.contextText,
-          String(getPref("chatSystemPrompt") || ""),
+          getSystemInstructions(),
         ),
         history,
         question,

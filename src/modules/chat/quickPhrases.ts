@@ -1,10 +1,14 @@
 /**
- * Skills shown as conversation templates in the chat panel.
+ * Conversation skills.
  *
- * Each skill has a short name and an instruction prompt. The editable table in
- * preferences stores the complete skill list as JSON in `chatSkills`; the old
- * `chatQuickPhrases` line format is still read once for backwards
- * compatibility, and also accepted by the import button.
+ * A skill has a name and an instruction. Rows marked `global` are appended to
+ * the system prompt on every turn; the others become one-off conversation
+ * templates. Keeping both in one list avoids duplicating the same instruction
+ * in two separate settings.
+ *
+ * The list is stored as JSON in `chatSkills`; the old `chatQuickPhrases` line
+ * format and the old `chatSystemPrompt` preference are still migrated when
+ * loading an existing install.
  */
 
 import { getPref, setPref } from "../../utils/prefs";
@@ -12,6 +16,8 @@ import { getPref, setPref } from "../../utils/prefs";
 export interface QuickPhrase {
   label: string;
   prompt: string;
+  /** True: always sent as a system rule; false/undefined: one-off template. */
+  global?: boolean;
 }
 
 export const MAX_QUICK_PHRASES = 50;
@@ -72,6 +78,15 @@ export function parseQuickPhrases(text: string): QuickPhrase[] {
   return result;
 }
 
+function hasGlobalFlag(record: Record<string, unknown>): boolean {
+  return (
+    record.global === true ||
+    record.system === true ||
+    record.scope === "system" ||
+    record.mode === "system"
+  );
+}
+
 /** Parse a JSON skill list, or fall back to the legacy `名称 | 提示词` text. */
 export function parseSkillsPayload(text: string): QuickPhrase[] {
   const raw = String(text || "").trim();
@@ -95,6 +110,7 @@ export function parseSkillsPayload(text: string): QuickPhrase[] {
   for (const item of items) {
     let label = "";
     let prompt = "";
+    let global = false;
     if (typeof item === "string") {
       const parsed = parseQuickPhrases(item)[0];
       if (parsed) {
@@ -107,39 +123,21 @@ export function parseSkillsPayload(text: string): QuickPhrase[] {
       prompt = String(
         record.prompt ?? record.instruction ?? record.content ?? "",
       ).trim();
+      global = hasGlobalFlag(record);
     }
     if (!prompt || seen.has(prompt)) continue;
     seen.add(prompt);
-    result.push({ label: label || prompt.slice(0, 18), prompt });
+    result.push({
+      label: label || prompt.slice(0, 18),
+      prompt,
+      ...(global ? { global: true } : {}),
+    });
     if (result.length >= MAX_QUICK_PHRASES) break;
   }
   return result;
 }
 
-/** Save the complete editable skill list. */
-export function saveQuickPhrases(phrases: QuickPhrase[]): void {
-  const normalized = phrases
-    .map((phrase) => ({
-      label: String(phrase.label || "").trim() || "未命名技能",
-      prompt: String(phrase.prompt || "").trim(),
-    }))
-    .filter((phrase) => phrase.prompt)
-    .slice(0, MAX_QUICK_PHRASES);
-  setPref("chatSkills", JSON.stringify(normalized) as never);
-}
-
-export function getDefaultTemplates(): QuickPhrase[] {
-  return DEFAULT_TEMPLATES.map((phrase) => ({ ...phrase }));
-}
-
-/** Load the current skills: new JSON list first, then legacy defaults. */
-export function loadQuickPhrases(): QuickPhrase[] {
-  try {
-    const raw = String(getPref("chatSkills") || "").trim();
-    if (raw) return parseSkillsPayload(raw);
-  } catch {
-    // fall through to the legacy preference
-  }
+function legacyRows(): QuickPhrase[] {
   let custom: QuickPhrase[] = [];
   try {
     custom = parseQuickPhrases(String(getPref("chatQuickPhrases") || ""));
@@ -155,4 +153,72 @@ export function loadQuickPhrases(): QuickPhrase[] {
     if (result.length >= MAX_QUICK_PHRASES) break;
   }
   return result;
+}
+
+/**
+ * All skill rows, including global system rules. Existing installs that used
+ * the separate `chatSystemPrompt` box get that text as one visible global row.
+ */
+export function loadSkillRows(): QuickPhrase[] {
+  let rows: QuickPhrase[] = [];
+  try {
+    const raw = String(getPref("chatSkills") || "").trim();
+    rows = raw ? parseSkillsPayload(raw) : legacyRows();
+  } catch {
+    rows = legacyRows();
+  }
+  const systemPrompt = String(getPref("chatSystemPrompt") || "").trim();
+  if (systemPrompt && !rows.some((row) => row.global)) {
+    rows.unshift({
+      label: "自定义系统提示词",
+      prompt: systemPrompt,
+      global: true,
+    });
+  }
+  return rows.slice(0, MAX_QUICK_PHRASES);
+}
+
+/** Only the one-off templates shown in the chat panel. */
+export function loadQuickPhrases(): QuickPhrase[] {
+  return loadSkillRows().filter((row) => !row.global);
+}
+
+/** Global rows, joined into the extra system instructions. */
+export function getSystemInstructions(): string {
+  return loadSkillRows()
+    .filter((row) => row.global && row.prompt.trim())
+    .map((row) => row.prompt.trim())
+    .join("\n\n");
+}
+
+/**
+ * Save all rows. `chatSystemPrompt` is kept in sync for compatibility with
+ * older builds and with users who inspect their preferences.
+ */
+export function saveSkillRows(rows: QuickPhrase[]): void {
+  const normalized = rows
+    .map((row) => ({
+      label: String(row.label || "").trim() || "未命名技能",
+      prompt: String(row.prompt || "").trim(),
+      ...(row.global ? { global: true } : {}),
+    }))
+    .filter((row) => row.prompt)
+    .slice(0, MAX_QUICK_PHRASES);
+  setPref("chatSkills", JSON.stringify(normalized) as never);
+  setPref(
+    "chatSystemPrompt",
+    normalized
+      .filter((row) => row.global)
+      .map((row) => row.prompt)
+      .join("\n\n") as never,
+  );
+}
+
+/** Backwards-compatible helper for tests/extensions. */
+export function saveQuickPhrases(phrases: QuickPhrase[]): void {
+  saveSkillRows(phrases);
+}
+
+export function getDefaultTemplates(): QuickPhrase[] {
+  return DEFAULT_TEMPLATES.map((phrase) => ({ ...phrase }));
 }

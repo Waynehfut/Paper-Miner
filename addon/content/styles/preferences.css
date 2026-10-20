@@ -111,7 +111,7 @@
 #paperminer-prefpane .pm-skill-head,
 #paperminer-prefpane .pm-skill-row {
   display: grid;
-  grid-template-columns: 150px minmax(220px, 1fr) 34px;
+  grid-template-columns: 130px minmax(180px, 1fr) 76px 34px;
   gap: 8px;
   align-items: start;
   padding: 6px 8px;
@@ -126,8 +126,27 @@
   font-weight: 700;
 }
 
+#paperminer-prefpane .pm-skill-head span:nth-child(3) {
+  text-align: center;
+}
+
 #paperminer-prefpane .pm-skill-head span:last-child {
   text-align: center;
+}
+
+#paperminer-prefpane .pm-skill-global {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  color: var(--fill-secondary, #52525b);
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#paperminer-prefpane .pm-skill-global-check {
+  margin: 0;
 }
 
 #paperminer-prefpane .pm-skill-row + .pm-skill-row {

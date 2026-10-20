@@ -1,10 +1,14 @@
+/* eslint-disable mocha/max-top-level-suites */
 import { assert } from "chai";
 import {
   getDefaultTemplates,
+  getSystemInstructions,
   loadQuickPhrases,
+  loadSkillRows,
   MAX_QUICK_PHRASES,
   parseQuickPhrases,
   parseSkillsPayload,
+  saveSkillRows,
 } from "../src/modules/chat/quickPhrases";
 import { setPref } from "../src/utils/prefs";
 
@@ -103,6 +107,79 @@ describe("chat quick phrases", function () {
       Zotero.Prefs.set(
         "extensions.zotero.paperminer.chatSkills",
         backupSkills,
+        true,
+      );
+    }
+  });
+});
+
+describe("global conversation skills", function () {
+  it("splits global system rules from one-off templates", function () {
+    const backupSkills = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSkills",
+      true,
+    );
+    const backupSystem = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSystemPrompt",
+      true,
+    );
+    try {
+      saveSkillRows([
+        { label: "全局规则", prompt: "GLOBAL-RULE", global: true },
+        { label: "单次模板", prompt: "TEMPLATE-ONLY" },
+      ]);
+      const rows = loadSkillRows();
+      assert.lengthOf(rows, 2);
+      assert.isTrue(rows[0].global);
+      assert.lengthOf(loadQuickPhrases(), 1);
+      assert.equal(loadQuickPhrases()[0].prompt, "TEMPLATE-ONLY");
+      assert.equal(getSystemInstructions(), "GLOBAL-RULE");
+      assert.equal(
+        Zotero.Prefs.get("extensions.zotero.paperminer.chatSystemPrompt", true),
+        "GLOBAL-RULE",
+      );
+    } finally {
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSkills",
+        backupSkills,
+        true,
+      );
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSystemPrompt",
+        backupSystem,
+        true,
+      );
+    }
+  });
+
+  it("migrates the old system prompt field into a global row", function () {
+    const backupSkills = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSkills",
+      true,
+    );
+    const backupSystem = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSystemPrompt",
+      true,
+    );
+    try {
+      Zotero.Prefs.set("extensions.zotero.paperminer.chatSkills", "", true);
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSystemPrompt",
+        "LEGACY-SYSTEM-RULE",
+        true,
+      );
+      const rows = loadSkillRows();
+      assert.isTrue(rows.some((row) => row.global));
+      assert.include(getSystemInstructions(), "LEGACY-SYSTEM-RULE");
+    } finally {
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSkills",
+        backupSkills,
+        true,
+      );
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSystemPrompt",
+        backupSystem,
         true,
       );
     }

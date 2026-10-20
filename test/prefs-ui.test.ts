@@ -30,10 +30,6 @@ describe("PaperMiner preferences UI", function () {
       doc.getElementById("pm-llm-disable-thinking"),
       "disable-thinking checkbox exists",
     );
-    assert.ok(
-      doc.getElementById("pm-chat-system-prompt"),
-      "custom system prompt textarea exists",
-    );
     assert.ok(doc.getElementById("pm-chat-skill-table"), "skills table exists");
     assert.isAbove(
       doc.querySelectorAll("#pm-chat-skill-table .pm-skill-row").length,
@@ -213,6 +209,10 @@ describe("PaperMiner template and numeric controls", function () {
       "extensions.zotero.paperminer.llmTemperature",
       true,
     );
+    const backupSystem = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSystemPrompt",
+      true,
+    );
     try {
       const rows = () =>
         doc.querySelectorAll("#pm-chat-skill-table .pm-skill-row");
@@ -298,6 +298,11 @@ describe("PaperMiner template and numeric controls", function () {
       Zotero.Prefs.set(
         "extensions.zotero.paperminer.llmTemperature",
         backupTemp,
+        true,
+      );
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSystemPrompt",
+        backupSystem,
         true,
       );
       win!.close();
