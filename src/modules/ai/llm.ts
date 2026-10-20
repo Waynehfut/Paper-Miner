@@ -191,7 +191,13 @@ function buildRequestBody(
   // Provider capability driven: only providers that document a switch get the
   // extra field. Everything else remains a plain OpenAI-compatible request.
   const thinkingControl = getLLMPreset(config.presetId).thinkingControl;
-  if (thinkingControl && getPref("llmDisableThinking") !== false) {
+  const requestModel = String(options.model || config.model || "");
+  if (
+    thinkingControl &&
+    getPref("llmDisableThinking") !== false &&
+    (!thinkingControl.modelPattern ||
+      thinkingControl.modelPattern.test(requestModel))
+  ) {
     body[thinkingControl.field] = thinkingControl.disabledValue;
   }
   return body;
@@ -247,7 +253,7 @@ export async function chatCompletion(
   const stream = options.stream ?? config.stream;
   const request = createRequestContext(
     options.signal,
-    stream ? 300_000 : 180_000,
+    options.timeoutMs ?? (stream ? 300_000 : 180_000),
   );
   try {
     const response = await fetch(endpoint, {

@@ -99,6 +99,8 @@ export interface LLMChatOptions {
   onReasoning?: (delta: string) => void;
   /** Disable streaming for this call. */
   stream?: boolean;
+  /** Request timeout in milliseconds; provider defaults apply if omitted. */
+  timeoutMs?: number;
 }
 
 /* ------------------------------------------------------------------ */

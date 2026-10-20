@@ -178,6 +178,7 @@ async function translateWithLLM(
       purpose: "translation",
       temperature: 0.2,
       signal: options.signal,
+      timeoutMs: 90_000,
       onDelta: options.onDelta,
     },
   );

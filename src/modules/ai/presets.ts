@@ -10,6 +10,8 @@ export interface LLMThinkingControl {
   field: string;
   /** Value that disables reasoning. */
   disabledValue: unknown;
+  /** Only send the switch for matching model families (some APIs reject it). */
+  modelPattern?: RegExp;
 }
 
 export interface LLMPreset {
@@ -56,6 +58,11 @@ export const LLM_PRESETS: LLMPreset[] = [
     baseURL: "https://open.bigmodel.cn/api/paas/v4",
     defaultModel: "glm-4-flash",
     hint: "https://open.bigmodel.cn/usercenter/apikeys",
+    thinkingControl: {
+      field: "thinking",
+      disabledValue: { type: "disabled" },
+      modelPattern: /glm-4\.[5-9]|glm-4-plus|glm-z1/i,
+    },
   },
   {
     id: "qwen",
@@ -63,6 +70,12 @@ export const LLM_PRESETS: LLMPreset[] = [
     baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     defaultModel: "qwen-plus",
     hint: "https://bailian.console.aliyun.com/",
+    // DashScope uses enable_thinking:false for Qwen3 thinking models.
+    thinkingControl: {
+      field: "enable_thinking",
+      disabledValue: false,
+      modelPattern: /qwen3|qwen-plus|qwen-max|qwen-turbo/i,
+    },
   },
   {
     id: "siliconflow",
@@ -70,6 +83,11 @@ export const LLM_PRESETS: LLMPreset[] = [
     baseURL: "https://api.siliconflow.cn/v1",
     defaultModel: "Qwen/Qwen2.5-7B-Instruct",
     hint: "https://cloud.siliconflow.cn/account/ak",
+    thinkingControl: {
+      field: "enable_thinking",
+      disabledValue: false,
+      modelPattern: /qwen3/i,
+    },
   },
   {
     id: "openrouter",

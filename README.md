@@ -58,7 +58,7 @@ npm run build          # 输出 .scaffold/build/addon + XPI
 1. 选择服务商预设（OpenAI、DeepSeek、Kimi、智谱、通义、SiliconFlow、OpenRouter、Gemini、Claude 或「自定义」；默认是「自定义」，不绑定任何平台）。
 2. 填写 **API Key**；Base URL 与模型会随预设自动填充，也可手动修改。
 3. 点击 **获取模型列表**，会读取当前 Key 可用的模型并填充到模型下拉列表，可直接选择或手动输入；点击 **测试连接**，看到「连接成功」即可。
-4. 「关闭深度思考/推理」是通用开关：只有声明支持该参数的服务商（如 DeepSeek）会收到额外请求字段，其他服务商保持标准 OpenAI 兼容请求，不受影响。
+4. 「关闭深度思考/推理」是通用开关：目前 DeepSeek、通义千问/DashScope、智谱 GLM、SiliconFlow（Qwen3）会按模型发送对应的关闭参数；不支持的服务商会保持标准请求，不受影响。
 
 > 任意 OpenAI 兼容接口都可用，模型列表通过当前 Base URL + API Key 动态获取。若使用本地模型（Ollama、LM Studio 等），选择「自定义」，Base URL 填例如 `http://127.0.0.1:11434/v1`。
 

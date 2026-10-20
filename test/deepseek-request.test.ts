@@ -58,5 +58,30 @@ describe("DeepSeek request options", function () {
       maxTokens: 16,
     });
     assert.isUndefined(body?.thinking);
+
+    // DashScope/Qwen uses enable_thinking:false instead of the DeepSeek field.
+    setPref("llmPreset", "qwen" as never);
+    setPref(
+      "llmBaseURL",
+      "https://dashscope.aliyuncs.com/compatible-mode/v1" as never,
+    );
+    setPref("llmModel", "qwen-plus" as never);
+    body = null;
+    await chatCompletion([{ role: "user", content: "ping" }], {
+      stream: false,
+      maxTokens: 16,
+    });
+    assert.equal(body?.enable_thinking, false);
+    assert.isUndefined(body?.thinking);
+
+    // The capability is opt-in per model family so non-thinking models do not
+    // receive a potentially unsupported parameter.
+    setPref("llmModel", "qwen2.5-7b-instruct" as never);
+    body = null;
+    await chatCompletion([{ role: "user", content: "ping" }], {
+      stream: false,
+      maxTokens: 16,
+    });
+    assert.isUndefined(body?.enable_thinking);
   });
 });
