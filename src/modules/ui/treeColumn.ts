@@ -127,12 +127,13 @@ function dataProvider(item: Zotero.Item): string {
 function partCategory(part: string): string {
   const text = part.trim();
   const upper = text.toUpperCase();
-  if (text.includes("预警")) return "warning";
-  if (/^[1-4]区|^Q[1-4]|TOP/.test(upper)) return "quartile";
-  if (/^(IF|5年IF|JCI)/.test(upper)) return "metric";
-  if (/(CSSCI|北大核心|CSCD|科技核心|梯队)/.test(text)) return "cn";
-  if (/(CCF|FMS|AJG|ABDC|FT50|UTD24)/.test(upper)) return "ranking";
-  if (/(^|\s)(EI|SSCI|AHCI|ESI)(\s|$)/.test(upper)) return "index";
+  if (text.includes("预警")) return "danger";
+  if (/^[1-4]区|TOP|基础版/.test(upper)) return "cas";
+  if (/^Q[1-4]|JCR/.test(upper)) return "sci";
+  if (/^(IF|5年IF|JCI)/.test(upper)) return "sci";
+  if (/(CSSCI|北大核心|CSCD|科技核心)/.test(text)) return "index";
+  if (/(CCF|FMS|AJG|ABDC|FT50|UTD24|梯队)/.test(upper)) return "level";
+  if (/(^|\s)(EI|SSCI|AHCI|ESI)(\s|$)/.test(upper)) return "open";
   return "neutral";
 }
 

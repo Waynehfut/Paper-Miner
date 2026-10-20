@@ -268,12 +268,24 @@
 /* ------------------------------------------------------------------ */
 
 .pm-journal-cell {
-  --pm-cell-quartile: #2563eb;
-  --pm-cell-metric: #047857;
-  --pm-cell-cn: #b45309;
-  --pm-cell-index: #6d28d9;
-  --pm-cell-ranking: #0f766e;
-  --pm-cell-warning: #dc2626;
+  --pm-cell-cas: #9a3412;
+  --pm-cell-cas-bg: #fff7ed;
+  --pm-cell-cas-border: #fdba74;
+  --pm-cell-sci: #1d4ed8;
+  --pm-cell-sci-bg: #eff6ff;
+  --pm-cell-sci-border: #93c5fd;
+  --pm-cell-index: #15803d;
+  --pm-cell-index-bg: #ecfdf5;
+  --pm-cell-index-border: #bbf7d0;
+  --pm-cell-level: #7e22ce;
+  --pm-cell-level-bg: #fdf4ff;
+  --pm-cell-level-border: #e9d5ff;
+  --pm-cell-open: #0f766e;
+  --pm-cell-open-bg: #f0fdfa;
+  --pm-cell-open-border: #99f6e4;
+  --pm-cell-danger: #991b1b;
+  --pm-cell-danger-bg: #fef2f2;
+  --pm-cell-danger-border: #fca5a5;
   display: flex;
   align-items: center;
   gap: 3px;
@@ -289,46 +301,68 @@
 }
 
 .pm-journal-cell-part {
+  --pm-part-color: var(--pm-cell-neutral, var(--pm-text-secondary));
+  --pm-part-bg: color-mix(in srgb, var(--pm-part-color) 10%, transparent);
+  --pm-part-border: color-mix(in srgb, var(--pm-part-color) 28%, transparent);
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-  height: 16px;
-  padding: 0 4px;
-  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  height: 17px;
+  padding: 0 5px;
+  border: 1px solid var(--pm-part-border);
   border-radius: 4px;
-  background: color-mix(in srgb, currentColor 11%, transparent);
+  background: var(--pm-part-bg);
+  color: var(--pm-part-color);
   font-size: 11px;
   font-weight: 600;
   line-height: 15px;
   white-space: nowrap;
 }
 
-.pm-journal-cell-part-quartile {
-  color: var(--pm-cell-quartile);
+.pm-journal-cell-part-cas {
+  --pm-part-color: var(--pm-cell-cas);
+  --pm-part-bg: var(--pm-cell-cas-bg);
+  --pm-part-border: var(--pm-cell-cas-border);
 }
 
-.pm-journal-cell-part-metric {
-  color: var(--pm-cell-metric);
-}
-
-.pm-journal-cell-part-cn {
-  color: var(--pm-cell-cn);
+.pm-journal-cell-part-sci {
+  --pm-part-color: var(--pm-cell-sci);
+  --pm-part-bg: var(--pm-cell-sci-bg);
+  --pm-part-border: var(--pm-cell-sci-border);
 }
 
 .pm-journal-cell-part-index {
-  color: var(--pm-cell-index);
+  --pm-part-color: var(--pm-cell-index);
+  --pm-part-bg: var(--pm-cell-index-bg);
+  --pm-part-border: var(--pm-cell-index-border);
 }
 
-.pm-journal-cell-part-ranking {
-  color: var(--pm-cell-ranking);
+.pm-journal-cell-part-level {
+  --pm-part-color: var(--pm-cell-level);
+  --pm-part-bg: var(--pm-cell-level-bg);
+  --pm-part-border: var(--pm-cell-level-border);
 }
 
-.pm-journal-cell-part-warning {
-  color: var(--pm-cell-warning);
+.pm-journal-cell-part-open {
+  --pm-part-color: var(--pm-cell-open);
+  --pm-part-bg: var(--pm-cell-open-bg);
+  --pm-part-border: var(--pm-cell-open-border);
+}
+
+.pm-journal-cell-part-danger {
+  --pm-part-color: var(--pm-cell-danger);
+  --pm-part-bg: var(--pm-cell-danger-bg);
+  --pm-part-border: var(--pm-cell-danger-border);
 }
 
 .pm-journal-cell-part-neutral {
-  color: var(--pm-text-secondary);
+  --pm-part-color: var(--pm-text-secondary);
+  --pm-part-bg: color-mix(in srgb, var(--pm-text-secondary) 9%, transparent);
+  --pm-part-border: color-mix(
+    in srgb,
+    var(--pm-text-secondary) 24%,
+    transparent
+  );
 }
 
 .pm-journal-cell-sep {
@@ -339,12 +373,24 @@
 
 @media (prefers-color-scheme: dark) {
   .pm-journal-cell {
-    --pm-cell-quartile: #93c5fd;
-    --pm-cell-metric: #6ee7b7;
-    --pm-cell-cn: #fcd34d;
-    --pm-cell-index: #c4b5fd;
-    --pm-cell-ranking: #5eead4;
-    --pm-cell-warning: #fca5a5;
+    --pm-cell-cas: #fdba74;
+    --pm-cell-cas-bg: #431407;
+    --pm-cell-cas-border: #9a3412;
+    --pm-cell-sci: #93c5fd;
+    --pm-cell-sci-bg: #172554;
+    --pm-cell-sci-border: #1e40af;
+    --pm-cell-index: #86efac;
+    --pm-cell-index-bg: #052e16;
+    --pm-cell-index-border: #166534;
+    --pm-cell-level: #d8b4fe;
+    --pm-cell-level-bg: #3b0764;
+    --pm-cell-level-border: #6d28d9;
+    --pm-cell-open: #5eead4;
+    --pm-cell-open-bg: #042f2e;
+    --pm-cell-open-border: #0d9488;
+    --pm-cell-danger: #fecaca;
+    --pm-cell-danger-bg: #450a0a;
+    --pm-cell-danger-border: #b91c1c;
   }
 }
 
