@@ -332,12 +332,12 @@ function renderJournalBlock(
         class: "pm-journal-badges",
       });
       const categoryLabels: Record<string, string> = {
-        quartile: t("journal-cat-quartile", "分区"),
-        metric: t("journal-cat-metric", "指标"),
-        cn: t("journal-cat-cn", "中文核心"),
-        index: t("journal-cat-index", "索引"),
-        ranking: t("journal-cat-ranking", "榜单"),
-        warning: t("journal-cat-warning", "预警"),
+        cas: t("journal-cat-cas", "中科院"),
+        sci: t("journal-cat-sci", "SCI / 指标"),
+        index: t("journal-cat-index", "中文核心"),
+        open: t("journal-cat-open", "开放索引"),
+        level: t("journal-cat-level", "榜单"),
+        danger: t("journal-cat-danger", "预警"),
       };
       let currentCategory = "";
       let group: HTMLElement | null = null;

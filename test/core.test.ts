@@ -213,7 +213,7 @@ describe("Chinese journal fields", function () {
     const badges = buildBadges(cnData, DEFAULT_ENABLED_FIELDS);
     const byKey = new Map(badges.map((badge) => [badge.key, badge]));
     assert.equal(byKey.get("cssci")?.value, "收录");
-    assert.equal(byKey.get("cssci")?.category, "cn");
+    assert.equal(byKey.get("cssci")?.category, "index");
     assert.equal(byKey.get("pku")?.value, "收录");
     assert.equal(byKey.get("cscd")?.value, "核心库");
     assert.equal(byKey.get("cju")?.value, "T1");

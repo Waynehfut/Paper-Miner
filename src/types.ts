@@ -17,12 +17,12 @@ export type JournalStatus =
 export type BadgeTone = "good" | "warn" | "bad" | "neutral" | "info";
 
 export type JournalBadgeCategory =
-  | "quartile"
-  | "metric"
-  | "cn"
+  | "cas"
+  | "sci"
   | "index"
-  | "ranking"
-  | "warning";
+  | "open"
+  | "level"
+  | "danger";
 
 export interface RankBadge {
   key: string;

@@ -38,7 +38,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "中科院",
     source: "select",
     fields: ["sciUp"],
-    category: "quartile",
+    category: "cas",
     defaultOn: true,
   },
   {
@@ -47,7 +47,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "中科院",
     source: "select",
     fields: ["sciUpTop"],
-    category: "quartile",
+    category: "cas",
     defaultOn: true,
   },
   {
@@ -56,7 +56,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "JCR",
     source: "select",
     fields: ["sci"],
-    category: "quartile",
+    category: "sci",
     defaultOn: true,
   },
   {
@@ -65,7 +65,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "基础版",
     source: "select",
     fields: ["sciBase"],
-    category: "quartile",
+    category: "cas",
   },
   {
     key: "sciif",
@@ -73,7 +73,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "IF",
     source: "official",
     fields: ["sciif"],
-    category: "metric",
+    category: "sci",
     defaultOn: true,
   },
   {
@@ -82,7 +82,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "5年IF",
     source: "select",
     fields: ["sciif5"],
-    category: "metric",
+    category: "sci",
   },
   {
     key: "jci",
@@ -90,7 +90,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "JCI",
     source: "official",
     fields: ["jci"],
-    category: "metric",
+    category: "sci",
   },
   {
     key: "cssci",
@@ -98,7 +98,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "CSSCI",
     source: "official",
     fields: ["cssci"],
-    category: "cn",
+    category: "index",
     defaultOn: true,
   },
   {
@@ -107,7 +107,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "北大核心",
     source: "official",
     fields: ["pku"],
-    category: "cn",
+    category: "index",
     defaultOn: true,
   },
   {
@@ -116,7 +116,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "CSCD",
     source: "official",
     fields: ["cscd"],
-    category: "cn",
+    category: "index",
     defaultOn: true,
   },
   {
@@ -125,7 +125,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "科技核心",
     source: "official",
     fields: ["zhongguokejihexin"],
-    category: "cn",
+    category: "index",
     defaultOn: true,
   },
   {
@@ -134,7 +134,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "梯队",
     source: "official",
     fields: ["cju"],
-    category: "cn",
+    category: "level",
     defaultOn: true,
   },
   {
@@ -143,7 +143,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "EI",
     source: "official",
     fields: ["eii"],
-    category: "index",
+    category: "open",
   },
   {
     key: "ahci",
@@ -151,7 +151,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "AHCI",
     source: "official",
     fields: ["ahci"],
-    category: "index",
+    category: "open",
   },
   {
     key: "ssci",
@@ -159,7 +159,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "SSCI",
     source: "official",
     fields: ["ssci"],
-    category: "index",
+    category: "open",
   },
   {
     key: "esi",
@@ -167,7 +167,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "ESI",
     source: "official",
     fields: ["esi"],
-    category: "index",
+    category: "open",
   },
   {
     key: "ccf",
@@ -175,7 +175,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "CCF",
     source: "official",
     fields: ["ccf"],
-    category: "ranking",
+    category: "level",
   },
   {
     key: "ajg",
@@ -183,7 +183,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "AJG",
     source: "official",
     fields: ["ajg"],
-    category: "ranking",
+    category: "level",
   },
   {
     key: "abdc",
@@ -191,7 +191,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "ABDC",
     source: "official",
     fields: ["abdc"],
-    category: "ranking",
+    category: "level",
   },
   {
     key: "ft50",
@@ -199,7 +199,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "FT50",
     source: "official",
     fields: ["ft50"],
-    category: "ranking",
+    category: "level",
   },
   {
     key: "utd24",
@@ -207,7 +207,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "UTD24",
     source: "official",
     fields: ["utd24"],
-    category: "ranking",
+    category: "level",
   },
   {
     key: "fms",
@@ -215,7 +215,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "FMS",
     source: "official",
     fields: ["fms"],
-    category: "ranking",
+    category: "level",
   },
   {
     key: "xr",
@@ -223,7 +223,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "新锐",
     source: "official",
     fields: ["xr"],
-    category: "quartile",
+    category: "cas",
   },
   {
     key: "sciWarning",
@@ -231,7 +231,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "中科院",
     source: "both",
     fields: ["sciWarning", "sciwarn"],
-    category: "warning",
+    category: "danger",
     warning: true,
     defaultOn: true,
   },
@@ -241,7 +241,7 @@ export const JOURNAL_FIELDS: JournalFieldDefinition[] = [
     shortLabel: "新锐",
     source: "both",
     fields: ["xrWarn"],
-    category: "warning",
+    category: "danger",
     warning: true,
   },
 ];
@@ -253,12 +253,12 @@ export const DEFAULT_ENABLED_FIELDS = JOURNAL_FIELDS.filter(
 export const DEFAULT_JOURNAL_FIELDS_VALUE = DEFAULT_ENABLED_FIELDS.join(",");
 
 const CATEGORY_ORDER: Record<JournalBadgeCategory, number> = {
-  quartile: 0,
-  metric: 1,
-  cn: 2,
-  index: 3,
-  ranking: 4,
-  warning: 9,
+  cas: 0,
+  sci: 1,
+  index: 2,
+  open: 3,
+  level: 4,
+  danger: 9,
 };
 
 const EMPTY_WARNING_VALUES = new Set([
@@ -388,17 +388,17 @@ export function buildBadge(
 ): RankBadge {
   const value = formatFieldValue(definition, rawValue);
   let tone: BadgeTone = "neutral";
-  if (definition.category === "warning") {
+  if (definition.category === "danger") {
     tone = "bad";
-  } else if (definition.category === "quartile") {
+  } else if (definition.category === "cas") {
     tone = quartileTone(rawValue);
-  } else if (definition.category === "metric") {
+  } else if (definition.category === "sci") {
     tone = "info";
-  } else if (definition.category === "cn") {
-    tone = "warn";
   } else if (definition.category === "index") {
+    tone = "good";
+  } else if (definition.category === "open") {
     tone = "info";
-  } else if (definition.category === "ranking") {
+  } else if (definition.category === "level") {
     tone = "neutral";
   }
   return {
