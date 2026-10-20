@@ -48,8 +48,9 @@ function byId<T extends Element = HTMLElement>(
 function setStatus(win: Window, id: string, text: string, ok?: boolean): void {
   const label = byId(win, id);
   if (!label) return;
-  label.textContent = text;
-  // XUL <label> renders its `value` attribute, not textContent.
+  // XUL <label> renders its `value` attribute. Clear any text node first:
+  // setting both textContent and value renders the message twice.
+  label.textContent = "";
   label.setAttribute("value", text);
   label.classList.remove(
     "pm-pref-status-ok",

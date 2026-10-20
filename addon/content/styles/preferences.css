@@ -62,8 +62,10 @@
 }
 
 #paperminer-prefpane .pm-pref-status {
+  display: block;
+  min-height: 16px;
   font-size: 12px;
-  margin-left: 4px;
+  line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
 }
