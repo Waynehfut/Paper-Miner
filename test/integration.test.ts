@@ -97,10 +97,12 @@ describe("PaperMiner integration", function () {
     const text = body!.textContent || "";
     assert.match(text, /AI (摘要|Summary)/);
     assert.match(text, /(阅读对话|Chat with Paper)/);
-    assert.isTrue(
-      text.includes("EasyScholar") || text.includes("期刊"),
-      "journal area should be rendered",
+    assert.isNull(
+      body!.querySelector('[data-pm-role="journal"]'),
+      "journal badges should not be duplicated in the item pane",
     );
+    assert.notInclude(text, "EasyScholar");
+    assert.notInclude(text, "期刊信息");
     const icons = Array.from(body!.querySelectorAll(".pm-icon"));
     assert.isAbove(icons.length, 3, "action icons should be rendered");
     const win = Zotero.getMainWindow();

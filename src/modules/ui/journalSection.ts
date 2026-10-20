@@ -1,36 +1,25 @@
 import { config } from "../../../package.json";
-import type { JournalResult } from "../../types";
 import { isLLMConfigured } from "../ai/config";
 import { generatePpt } from "../ai/ppt";
 import { generateSummary, openSummaryNote } from "../ai/summary";
-import {
-  prefetchJournalRanks,
-  getCachedJournalRank,
-  getJournalRank,
-} from "../journal/service";
-import {
-  iconButton,
-  htmlEl,
-  loadingRow,
-  statusText,
-  zoteroIconImg,
-} from "../journal/dom";
+import { prefetchJournalRanks, getJournalRank } from "../journal/service";
+import { htmlEl, zoteroIconImg } from "../journal/dom";
 import { clearChildren } from "../../utils/html";
 import { t } from "../../utils/i18n";
 import {
   findPDFAttachment,
-  getItemPublication,
   getRegularItemForReader,
   isPaperItem,
 } from "../../utils/item";
 import { errorToString, log } from "../../utils/log";
 import { getPref } from "../../utils/prefs";
-import { openURL, showProgress, toast } from "../../utils/ui";
+import { showProgress, toast } from "../../utils/ui";
 import { openChatPanel } from "./chatPanel";
 import { refreshJournalColumn } from "./treeColumn";
 
 /**
- * Item pane section: journal badges and AI action buttons.
+ * Item pane section: AI action buttons. Journal badges live only in the
+ * item-tree column now; this pane intentionally does not repeat them.
  * Owned by the journal UI module.
  */
 
@@ -47,7 +36,6 @@ let registeredKey: string | false | null = null;
 let notifierID: string | false = false;
 const sectionBodies = new Set<HTMLDivElement>();
 const refreshByBody = new WeakMap<HTMLDivElement, () => Promise<void>>();
-const tokens = new WeakMap<HTMLDivElement, number>();
 let selectionPrefetchTimer: ReturnType<typeof setTimeout> | null = null;
 
 function resolveRegularItem(item: Zotero.Item | null | undefined) {
@@ -57,16 +45,6 @@ function resolveRegularItem(item: Zotero.Item | null | undefined) {
 function isApplicable(item: Zotero.Item | null | undefined): boolean {
   const regular = resolveRegularItem(item);
   return Boolean(regular && isPaperItem(regular));
-}
-
-function bumpToken(body: HTMLDivElement): number {
-  const next = (tokens.get(body) || 0) + 1;
-  tokens.set(body, next);
-  return next;
-}
-
-function currentToken(body: HTMLDivElement): number {
-  return tokens.get(body) || 0;
 }
 
 function openPreferences(): void {
@@ -200,11 +178,7 @@ function actionButton(
   return button;
 }
 
-function buildActions(
-  doc: Document,
-  item: Zotero.Item,
-  body: HTMLDivElement,
-): HTMLElement {
+function buildActions(doc: Document, item: Zotero.Item): HTMLElement {
   const grid = htmlEl(doc, "div", {
     class: "pm-actions pm-journal-actions",
   });
@@ -225,7 +199,7 @@ function buildActions(
   );
   grid.appendChild(
     actionButton(doc, "refresh", t("action-refresh", "刷新信息"), () => {
-      void refreshData(doc, body, item);
+      void refreshData(item);
     }),
   );
   grid.appendChild(
@@ -246,248 +220,18 @@ function buildActions(
 /* Data loading                                                        */
 /* ------------------------------------------------------------------ */
 
-async function loadJournal(
-  item: Zotero.Item,
-  force = false,
-): Promise<JournalResult | null> {
-  if (!getPref("journalEnabled")) return null;
+/** Force a refresh of the journal data used by the item-tree column. */
+async function refreshData(item: Zotero.Item): Promise<void> {
   try {
-    return await getJournalRank(item, force ? { force: true } : {});
+    await getJournalRank(item, { force: true });
+    refreshJournalColumn();
+    toast(t("journal-refreshed", "已刷新期刊信息"), "success");
   } catch (error) {
-    log("loadJournal failed:", errorToString(error));
-    return {
-      status: "error",
-      publication: "",
-      badges: [],
-      warning: false,
-      shortText: "",
-      fetchedAt: 0,
-      error: t("journal-error", "获取期刊信息失败"),
-    };
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Rendering                                                           */
-/* ------------------------------------------------------------------ */
-
-function blockHeader(
-  doc: Document,
-  title: string,
-  onRefresh: () => void,
-): HTMLElement {
-  const row = htmlEl(doc, "div", { class: "pm-row pm-journal-block-head" });
-  row.appendChild(
-    htmlEl(doc, "span", { class: "pm-section-title", text: title }),
-  );
-  row.appendChild(htmlEl(doc, "span", { class: "pm-spacer" }));
-  row.appendChild(
-    iconButton(doc, "refresh", {
-      title: t("refresh", "刷新"),
-      className: "pm-journal-refresh",
-      onClick: onRefresh,
-    }),
-  );
-  return row;
-}
-
-function linkButton(
-  doc: Document,
-  label: string,
-  url: string,
-): HTMLButtonElement {
-  return htmlEl(doc, "button", {
-    class: "pm-link pm-journal-link-btn",
-    text: label,
-    attrs: { type: "button" },
-    on: {
-      click: (event: Event) => {
-        event.preventDefault();
-        openURL(url);
-      },
-    },
-  });
-}
-
-function renderJournalBlock(
-  doc: Document,
-  container: HTMLElement,
-  result: JournalResult | null,
-  item: Zotero.Item,
-  body: HTMLDivElement,
-): void {
-  clearChildren(container);
-  container.appendChild(
-    blockHeader(doc, t("journal-title", "期刊信息"), () => {
-      void refreshData(doc, body, item);
-    }),
-  );
-  if (!result) {
-    container.appendChild(statusText(doc, t("journal-empty", "无期刊信息")));
-    return;
-  }
-  switch (result.status) {
-    case "ok": {
-      const badges = htmlEl(doc, "div", {
-        class: "pm-journal-badges",
-      });
-      const categoryLabels: Record<string, string> = {
-        cas: t("journal-cat-cas", "中科院"),
-        sci: t("journal-cat-sci", "SCI / 指标"),
-        index: t("journal-cat-index", "中文核心"),
-        open: t("journal-cat-open", "开放索引"),
-        level: t("journal-cat-level", "榜单"),
-        danger: t("journal-cat-danger", "预警"),
-      };
-      let currentCategory = "";
-      let group: HTMLElement | null = null;
-      for (const badge of result.badges) {
-        if (badge.category !== currentCategory) {
-          currentCategory = badge.category;
-          group = htmlEl(doc, "div", {
-            class: `pm-journal-badge-group pm-journal-badge-group-${badge.category}`,
-          });
-          group.appendChild(
-            htmlEl(doc, "span", {
-              class: "pm-journal-group-label",
-              text: categoryLabels[badge.category] || "",
-            }),
-          );
-          badges.appendChild(group);
-        }
-        const pill = htmlEl(doc, "span", {
-          class: `pm-journal-badge pm-journal-badge-${badge.category}`,
-          title: `${badge.label}: ${badge.value}`,
-        });
-        pill.appendChild(
-          htmlEl(doc, "span", {
-            class:
-              badge.value === "收录"
-                ? "pm-journal-badge-cat pm-journal-badge-solo"
-                : "pm-journal-badge-cat",
-            text: badge.shortLabel,
-          }),
-        );
-        if (badge.value !== "收录") {
-          pill.appendChild(
-            htmlEl(doc, "span", {
-              class: "pm-journal-badge-val",
-              text: badge.value,
-            }),
-          );
-        }
-        group!.appendChild(pill);
-      }
-      if (!result.badges.length) {
-        badges.appendChild(
-          htmlEl(doc, "span", {
-            class: "pm-muted",
-            text: t("journal-empty", "无期刊信息"),
-          }),
-        );
-      }
-      container.appendChild(badges);
-      if (result.warning) {
-        const banner = htmlEl(doc, "div", {
-          class: "pm-banner pm-banner-warning pm-journal-warning-banner",
-        });
-        banner.appendChild(zoteroIconImg(doc, "warning"));
-        banner.appendChild(
-          htmlEl(doc, "span", {
-            class: "pm-banner-title",
-            text: t("journal-warning", "中科院预警期刊"),
-          }),
-        );
-        container.appendChild(banner);
-      }
-      if (result.publication) {
-        container.appendChild(
-          htmlEl(doc, "div", {
-            class: "pm-muted pm-journal-publication",
-            text: result.publication,
-            title: result.publication,
-          }),
-        );
-      }
-      break;
-    }
-    case "unconfigured":
-      container.appendChild(
-        statusText(
-          doc,
-          result.error ||
-            t(
-              "journal-unconfigured",
-              "尚未配置 EasyScholar 密钥，点击前往设置",
-            ),
-          {
-            tone: "warn",
-            actionLabel: t("action-settings", "打开设置"),
-            onAction: openPreferences,
-          },
-        ),
-      );
-      break;
-    case "notfound":
-      container.appendChild(
-        statusText(
-          doc,
-          result.error || t("journal-notfound", "EasyScholar 未收录该期刊"),
-          {
-            actionLabel: t("retry", "重试"),
-            onAction: () => {
-              void refreshData(doc, body, item);
-            },
-          },
-        ),
-      );
-      break;
-    case "error":
-      container.appendChild(
-        statusText(
-          doc,
-          `${t("journal-error", "获取期刊信息失败")}：${result.error || ""}`,
-          {
-            tone: "danger",
-            actionLabel: t("retry", "重试"),
-            onAction: () => {
-              void refreshData(doc, body, item);
-            },
-          },
-        ),
-      );
-      break;
-    default:
-      container.appendChild(
-        loadingRow(doc, t("journal-loading", "正在查询期刊信息…")),
-      );
-      break;
-  }
-}
-
-/** Force a refresh of the journal block for the given item. */
-async function refreshData(
-  doc: Document,
-  body: HTMLDivElement,
-  item: Zotero.Item,
-): Promise<void> {
-  const journalBlock = body.querySelector(
-    '[data-pm-role="journal"]',
-  ) as HTMLElement | null;
-  const token = currentToken(body);
-  if (journalBlock) {
-    clearChildren(journalBlock);
-    journalBlock.appendChild(
-      loadingRow(doc, t("journal-loading", "正在查询期刊信息…")),
+    toast(
+      `${t("journal-error", "获取期刊信息失败")}：${friendlyMessage(error)}`,
+      "fail",
     );
   }
-  const journal = await loadJournal(item, true);
-  if (token !== currentToken(body) || !body.isConnected) return;
-  if (journalBlock) {
-    renderJournalBlock(doc, journalBlock, journal, item, body);
-  }
-  refreshJournalColumn();
-  toast(t("journal-refreshed", "已刷新期刊信息"), "success");
 }
 
 /* ------------------------------------------------------------------ */
@@ -503,10 +247,9 @@ function renderSection(props: SectionArgs): void {
   } catch (error) {
     log("setEnabled failed:", errorToString(error));
   }
-  bumpToken(body);
   clearChildren(body);
   try {
-    setSectionSummary("");
+    setSectionSummary?.("");
   } catch {
     // ignore
   }
@@ -518,59 +261,8 @@ function renderSection(props: SectionArgs): void {
   const root = htmlEl(doc, "div", {
     class: "pm-root pm-journal-section",
   });
+  root.appendChild(buildActions(doc, regular));
   body.appendChild(root);
-
-  const journalBlock = htmlEl(doc, "div", {
-    class: "pm-journal-block pm-journal-journal",
-    dataset: { pmRole: "journal" },
-  });
-  journalBlock.appendChild(
-    loadingRow(doc, t("journal-loading", "正在查询期刊信息…")),
-  );
-  root.appendChild(journalBlock);
-
-  root.appendChild(htmlEl(doc, "hr", { class: "pm-divider" }));
-  root.appendChild(buildActions(doc, regular, body));
-
-  // Render cached data immediately and also start the async load here instead
-  // of waiting for onAsyncRender. Zotero only invokes onAsyncRender when the
-  // section is open, so a collapsed section would otherwise stay in its
-  // loading state forever.
-  const cachedJournal = getCachedJournalRank(getItemPublication(regular));
-  if (cachedJournal) {
-    renderJournalBlock(doc, journalBlock, cachedJournal, regular, body);
-  }
-  void refreshSectionData(doc, body, regular, setSectionSummary);
-}
-
-async function refreshSectionData(
-  doc: Document,
-  body: HTMLDivElement,
-  regular: Zotero.Item,
-  setSectionSummary?: (summary: string) => void,
-): Promise<void> {
-  const token = currentToken(body);
-  const journalBlock = body.querySelector(
-    '[data-pm-role="journal"]',
-  ) as HTMLElement | null;
-  if (!journalBlock) return;
-  const journal = await loadJournal(regular);
-  if (token !== currentToken(body) || !body.isConnected) return;
-  renderJournalBlock(doc, journalBlock, journal, regular, body);
-  try {
-    setSectionSummary?.(
-      journal?.status === "ok" && journal.shortText ? journal.shortText : "",
-    );
-  } catch {
-    // ignore
-  }
-}
-
-async function renderSectionAsync(props: SectionArgs): Promise<void> {
-  const { doc, body, item, setSectionSummary } = props;
-  const regular = resolveRegularItem(item);
-  if (!regular || !isPaperItem(regular)) return;
-  await refreshSectionData(doc, body, regular, setSectionSummary);
 }
 
 function scheduleSelectionPrefetch(item: Zotero.Item | null | undefined): void {
@@ -649,7 +341,6 @@ export function registerJournalSection(): string | false {
       onDestroy: (props: { body: HTMLDivElement }) => {
         sectionBodies.delete(props.body);
         refreshByBody.delete(props.body);
-        tokens.delete(props.body);
       },
       onItemChange: (props: SectionArgs) => {
         try {
@@ -664,7 +355,6 @@ export function registerJournalSection(): string | false {
       onRender: (props: SectionArgs) => {
         renderSection(props);
       },
-      onAsyncRender: (props: SectionArgs) => renderSectionAsync(props),
     });
     if (!key) {
       log("registerJournalSection returned false");
