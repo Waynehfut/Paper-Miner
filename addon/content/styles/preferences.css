@@ -119,7 +119,8 @@
   min-width: 110px;
 }
 
-#paperminer-prefpane .pm-pref-engine[hidden] {
+#paperminer-prefpane .pm-pref-engine[hidden],
+#paperminer-prefpane .pm-pref-engine-card[hidden] {
   display: none;
 }
 
