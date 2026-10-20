@@ -510,6 +510,7 @@ function populateJournalFields(win: Window): void {
 
 function updateTranslateEngineVisibility(win: Window): void {
   const engine = String(getPref("translateEngine") || "llm");
+  byId(win, "pm-tr-llm-prompt")?.toggleAttribute("hidden", engine !== "llm");
   byId(win, "pm-tr-deepl")?.toggleAttribute("hidden", engine !== "deepl");
   byId(win, "pm-tr-youdao")?.toggleAttribute("hidden", engine !== "youdao");
   byId(win, "pm-tr-tencent")?.toggleAttribute("hidden", engine !== "tencent");

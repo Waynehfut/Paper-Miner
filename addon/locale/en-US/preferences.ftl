@@ -149,3 +149,7 @@ paperminer-pref-chat-skill-import =
     .label = Import skills
 paperminer-pref-chat-skill-export =
     .label = Export skills
+paperminer-pref-translate-desc = Choose a translation engine and target language. Except for "Reuse AI model", each engine needs its own provider credentials; selecting text shows a translate action or a floating panel.
+paperminer-pref-translate-deepl-title = DeepL settings
+paperminer-pref-translate-youdao-title = Youdao settings
+paperminer-pref-translate-tencent-title = Tencent Cloud TMT settings

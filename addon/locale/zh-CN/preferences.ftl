@@ -149,3 +149,7 @@ paperminer-pref-chat-skill-import =
     .label = 导入技能
 paperminer-pref-chat-skill-export =
     .label = 导出技能
+paperminer-pref-translate-desc = 选择翻译引擎并设置目标语言。除「复用 AI 模型」外，其他引擎需要填写各自的服务商密钥；选中文本后会显示翻译按钮或浮动面板。
+paperminer-pref-translate-deepl-title = DeepL 配置
+paperminer-pref-translate-youdao-title = 有道智云配置
+paperminer-pref-translate-tencent-title = 腾讯云机器翻译配置

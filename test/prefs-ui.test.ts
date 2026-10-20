@@ -213,6 +213,10 @@ describe("PaperMiner template and numeric controls", function () {
       "extensions.zotero.paperminer.chatSystemPrompt",
       true,
     );
+    const backupEngine = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.translateEngine",
+      true,
+    );
     try {
       const rows = () =>
         doc.querySelectorAll("#pm-chat-skill-table .pm-skill-row");
@@ -273,6 +277,19 @@ describe("PaperMiner template and numeric controls", function () {
         );
       }
 
+      const engine = doc.getElementById("pm-tr-engine") as any;
+      const promptCard = doc.getElementById("pm-tr-llm-prompt") as HTMLElement;
+      const deeplCard = doc.getElementById("pm-tr-deepl") as HTMLElement;
+      engine.value = "deepl";
+      engine.dispatchEvent(new win!.Event("command", { bubbles: true }));
+      await Zotero.Promise.delay(100);
+      assert.isTrue(promptCard.hasAttribute("hidden"));
+      assert.isFalse(deeplCard.hasAttribute("hidden"));
+      engine.value = "llm";
+      engine.dispatchEvent(new win!.Event("command", { bubbles: true }));
+      await Zotero.Promise.delay(100);
+      assert.isFalse(promptCard.hasAttribute("hidden"));
+
       const temp = doc.getElementById("pm-llm-temperature") as HTMLInputElement;
       temp.value = "abc";
       temp.dispatchEvent(new win!.Event("input", { bubbles: true }));
@@ -303,6 +320,11 @@ describe("PaperMiner template and numeric controls", function () {
       Zotero.Prefs.set(
         "extensions.zotero.paperminer.chatSystemPrompt",
         backupSystem,
+        true,
+      );
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.translateEngine",
+        backupEngine,
         true,
       );
       win!.close();

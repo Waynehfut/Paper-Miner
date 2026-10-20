@@ -80,10 +80,43 @@
   color: var(--fill-secondary, #52525b);
 }
 
-#paperminer-prefpane .pm-pref-engine {
-  padding-left: 16px;
-  border-left: 2px solid var(--material-border-quarternary, rgba(0, 0, 0, 0.12));
-  margin: 4px 0 8px;
+#paperminer-prefpane .pm-pref-engine-card {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--material-border-quarternary, rgba(0, 0, 0, 0.14));
+  border-radius: 6px;
+  background: var(--material-mix-quinary, rgba(0, 0, 0, 0.025));
+}
+
+#paperminer-prefpane .pm-pref-engine-title {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--fill-secondary, #52525b);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+#paperminer-prefpane .pm-pref-engine hbox {
+  gap: 8px;
+  margin: 5px 0;
+}
+
+#paperminer-prefpane .pm-pref-engine hbox label[control] {
+  flex: 0 0 140px;
+  text-align: right;
+}
+
+#paperminer-prefpane .pm-tr-row {
+  gap: 8px;
+  margin: 4px 0;
+}
+
+#paperminer-prefpane .pm-tr-row #pm-tr-engine {
+  min-width: 150px;
+}
+
+#paperminer-prefpane .pm-tr-row #pm-tr-target {
+  min-width: 110px;
 }
 
 #paperminer-prefpane .pm-pref-engine[hidden] {

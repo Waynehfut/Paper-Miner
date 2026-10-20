@@ -590,8 +590,9 @@
           data-l10n-id="paperminer-pref-translate-title"
         ></html:h2>
       </label>
+      <description data-l10n-id="paperminer-pref-translate-desc"></description>
 
-      <hbox align="center">
+      <hbox align="center" class="pm-tr-row">
         <label
           data-l10n-id="paperminer-pref-translate-engine"
           control="pm-tr-engine"
@@ -644,14 +645,37 @@
             ></menuitem>
           </menupopup>
         </menulist>
-        <spacer flex="1"></spacer>
+      </hbox>
+
+      <hbox align="center">
         <checkbox
           id="pm-tr-showpopup"
           data-l10n-id="paperminer-pref-translate-showpopup"
         ></checkbox>
+        <spacer flex="1"></spacer>
       </hbox>
 
-      <vbox id="pm-tr-deepl" class="pm-pref-engine">
+      <vbox id="pm-tr-llm-prompt" class="pm-pref-engine-card">
+        <label
+          data-l10n-id="paperminer-pref-translate-prompt"
+          control="pm-tr-prompt"
+        ></label>
+        <html:textarea
+          id="pm-tr-prompt"
+          class="pm-pref-textarea"
+          rows="3"
+          placeholder="仅在选择 AI 翻译时生效，例如：保持被动语态，术语采用《...》译法。"
+        ></html:textarea>
+        <description
+          data-l10n-id="paperminer-pref-translate-prompt-desc"
+        ></description>
+      </vbox>
+
+      <vbox id="pm-tr-deepl" class="pm-pref-engine pm-pref-engine-card">
+        <label
+          class="pm-pref-engine-title"
+          data-l10n-id="paperminer-pref-translate-deepl-title"
+        ></label>
         <hbox align="center">
           <label
             data-l10n-id="paperminer-pref-deepl-key"
@@ -678,7 +702,11 @@
         </hbox>
       </vbox>
 
-      <vbox id="pm-tr-youdao" class="pm-pref-engine">
+      <vbox id="pm-tr-youdao" class="pm-pref-engine pm-pref-engine-card">
+        <label
+          class="pm-pref-engine-title"
+          data-l10n-id="paperminer-pref-translate-youdao-title"
+        ></label>
         <hbox align="center">
           <label
             data-l10n-id="paperminer-pref-youdao-key"
@@ -704,23 +732,12 @@
           ></html:input>
         </hbox>
       </vbox>
-      <vbox>
-        <label
-          data-l10n-id="paperminer-pref-translate-prompt"
-          control="pm-tr-prompt"
-        ></label>
-        <html:textarea
-          id="pm-tr-prompt"
-          class="pm-pref-textarea"
-          rows="3"
-          placeholder="仅在选择 AI 翻译时生效，例如：保持被动语态，术语采用《...》译法。"
-        ></html:textarea>
-        <description
-          data-l10n-id="paperminer-pref-translate-prompt-desc"
-        ></description>
-      </vbox>
 
-      <vbox id="pm-tr-tencent" class="pm-pref-engine">
+      <vbox id="pm-tr-tencent" class="pm-pref-engine pm-pref-engine-card">
+        <label
+          class="pm-pref-engine-title"
+          data-l10n-id="paperminer-pref-translate-tencent-title"
+        ></label>
         <hbox align="center">
           <label
             data-l10n-id="paperminer-pref-tencent-key"
@@ -754,6 +771,7 @@
             id="pm-tr-tencent-region"
             class="pm-pref-input"
             type="text"
+            flex="1"
             placeholder="ap-guangzhou"
           ></html:input>
         </hbox>
