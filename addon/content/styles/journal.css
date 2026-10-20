@@ -1,0 +1,381 @@
+/* Journal ranking + retraction UI. Owner: journal/retraction module. */
+
+/* ------------------------------------------------------------------ */
+/* Item pane section                                                   */
+/* ------------------------------------------------------------------ */
+
+.pm-journal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 0 6px;
+}
+
+.pm-journal-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pm-journal-block-head {
+  min-height: 20px;
+}
+
+.pm-journal-block-head .pm-section-title {
+  margin: 0;
+}
+
+.pm-journal-refresh {
+  width: 20px;
+  height: 20px;
+}
+
+.pm-journal-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.pm-journal-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pm-journal-group-label {
+  flex: 0 0 50px;
+  font-size: 10px;
+  line-height: 18px;
+  color: var(--pm-text-muted);
+  text-align: right;
+  padding-inline-end: 2px;
+  user-select: none;
+}
+
+.pm-journal-badge {
+  --pm-badge-color: var(--pm-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--pm-badge-color) 32%, transparent);
+  background: color-mix(in srgb, var(--pm-badge-color) 12%, transparent);
+  color: var(--pm-badge-color);
+  font-size: 11px;
+  line-height: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pm-journal-badge-cat {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.72;
+}
+
+.pm-journal-badge-val {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.pm-journal-badge-solo {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* Category colour families make the different ranking systems easy to tell
+   apart at a glance. */
+.pm-journal-badge-quartile {
+  --pm-badge-color: var(--pm-accent);
+}
+
+.pm-journal-badge-metric {
+  --pm-badge-color: var(--pm-success);
+}
+
+.pm-journal-badge-cn {
+  --pm-badge-color: var(--accent-gold, #b45309);
+}
+
+.pm-journal-badge-index {
+  --pm-badge-color: #7c3aed;
+}
+
+.pm-journal-badge-ranking {
+  --pm-badge-color: #0f766e;
+}
+
+.pm-journal-badge-warning {
+  --pm-badge-color: var(--pm-danger);
+  border-color: color-mix(in srgb, var(--pm-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--pm-danger) 16%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .pm-journal-badge-cn {
+    --pm-badge-color: var(--accent-gold, #fbbf24);
+  }
+
+  .pm-journal-badge-index {
+    --pm-badge-color: #c4b5fd;
+  }
+
+  .pm-journal-badge-ranking {
+    --pm-badge-color: #5eead4;
+  }
+}
+
+.pm-journal-warning-banner {
+  align-items: center;
+  padding: 5px 8px;
+  margin-top: 2px;
+}
+
+.pm-journal-publication {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.pm-journal-status {
+  min-height: 20px;
+}
+
+.pm-journal-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pm-journal-note-warn {
+  color: var(--pm-warning);
+}
+
+.pm-journal-note-danger {
+  color: var(--pm-danger);
+}
+
+.pm-journal-link-btn {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: inherit;
+  color: var(--pm-accent);
+  cursor: pointer;
+  text-align: left;
+  white-space: normal;
+}
+
+.pm-journal-link-btn:hover {
+  text-decoration: underline;
+}
+
+.pm-journal-retracted {
+  padding: 7px 9px;
+}
+
+.pm-journal-banner-content {
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pm-journal-line {
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.pm-journal-details {
+  font-size: 11px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.pm-journal-sources {
+  font-size: 11px;
+}
+
+.pm-journal-clear {
+  color: var(--pm-success);
+}
+
+.pm-journal-actions {
+  gap: 6px;
+}
+
+.pm-journal-action {
+  min-height: 28px;
+}
+
+.pm-journal-action .pm-icon {
+  opacity: 0.8;
+}
+
+/* ------------------------------------------------------------------ */
+/* Item tree column                                                    */
+/* ------------------------------------------------------------------ */
+
+.pm-journal-cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: inherit;
+}
+
+.pm-journal-cell-empty {
+  color: transparent;
+}
+
+.pm-journal-cell-good {
+  color: var(--pm-success);
+  font-weight: 600;
+}
+
+.pm-journal-cell-info {
+  color: var(--pm-accent);
+}
+
+.pm-journal-cell-neutral {
+  color: var(--pm-text-secondary);
+}
+
+.pm-journal-cell-bad {
+  color: var(--pm-danger);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------------ */
+/* Reader toolbar chip + banner                                        */
+/* ------------------------------------------------------------------ */
+
+.pm-journal-toolbar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  margin: 0 2px;
+  border-radius: 5px;
+  border: 1px solid var(--pm-border);
+  background: var(--pm-bg-subtle);
+  font-family: var(--pm-font);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  -moz-window-dragging: no-drag;
+}
+
+.pm-journal-toolbar-chip:hover {
+  background: var(--pm-bg-hover);
+}
+
+.pm-journal-toolbar-chip .pm-icon {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
+}
+
+.pm-journal-toolbar-chip-retracted {
+  color: var(--pm-danger);
+  border-color: color-mix(in srgb, var(--pm-danger) 35%, transparent);
+  background: color-mix(in srgb, var(--pm-danger) 10%, transparent);
+}
+
+.pm-journal-toolbar-chip-warning {
+  color: var(--pm-warning);
+  border-color: color-mix(in srgb, var(--pm-warning) 35%, transparent);
+  background: color-mix(in srgb, var(--pm-warning) 10%, transparent);
+}
+
+.pm-journal-reader-banner {
+  position: fixed;
+  z-index: 24;
+  align-items: flex-start;
+  max-height: 40vh;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  .pm-journal-reader-banner {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.pm-journal-reader-banner .pm-icon {
+  margin-top: 1px;
+}
+
+.pm-journal-reader-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pm-journal-reader-banner-text {
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.92;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.pm-journal-banner-close {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-inline-start: 4px;
+  align-self: flex-start;
+}
+
+.pm-journal-banner-close .pm-icon {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
+}
+
+.pm-journal-hidden {
+  display: none !important;
+}
+
+.pm-journal-banner-close span {
+  font-size: 15px;
+  line-height: 1;
+  color: currentColor;
+}
+
+/* The 5th action (selection translation) spans the full grid row. */
+.pm-journal-action-wide {
+  grid-column: 1 / -1;
+}

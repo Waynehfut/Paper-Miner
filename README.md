@@ -1,0 +1,156 @@
+# PaperMiner
+
+[![CI](https://github.com/Waynehfut/Paper-Miner/actions/workflows/ci.yml/badge.svg)](https://github.com/Waynehfut/Paper-Miner/actions/workflows/ci.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+
+PaperMiner 是一个面向科研工作者的 Zotero 文献阅读助手：在 Zotero 原生界面里直接查看**期刊分区/预警**、检测**论文撤稿**，并对选中的论文进行 **AI 阅读对话、AI 摘要、PPT 生成、划词翻译**。
+
+- 无需注册 / 登录 PaperMiner 账号；所有功能由用户自己的 API Key 驱动。
+- 所有配置和缓存仅保存在本机 Zotero 数据目录，插件不含任何服务器、不收集遥测。
+- 界面遵循 Zotero 原生样式，支持浅色 / 深色模式。
+
+面向 Zotero 7+（在 **Zotero 10.0.6** 上完成开发与自动化测试）。
+
+---
+
+## 功能
+
+| 功能            | 说明                                                                                                                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 期刊分区 / 预警 | 对接 **EasyScholar 开放接口**，按「分区 / 指标 / 中文核心 / 索引 / 榜单 / 预警」分组展示中科院分区、JCR、影响因子、CSSCI、北大核心、CSCD、科技核心、CCF、TOP 等，颜色区分不同体系；预警期刊红色标识。 |
+| 撤稿检测        | 优先使用 **Zotero 内置 Retraction Watch 数据**（Zotero 10），并用 **OpenAlex** / **Crossref** 公共接口补查；撤稿论文在条目面板与 PDF 阅读器顶部显示红色横幅，附撤稿日期、原因和声明 DOI。             |
+| 论文阅读对话    | 在 PDF 阅读器右侧停靠聊天面板，基于论文原文问答；支持流式输出、停止、历史记录、划词引用、建议问题、自定义系统提示词与对话模板。                                                                       |
+| AI 阅读摘要     | 一键（或手动开启「打开 PDF 时自动生成」后）生成结构化中文摘要：研究问题、方法、数据与实验、结论、创新点、局限、启示；保存为条目的子笔记并打标签。自动生成默认关闭。                                   |
+| 生成 PPT        | 依据论文生成 8–20 页可编辑 `.pptx`，保存到「下载/PaperMiner」并可自动打开。                                                                                                                           |
+| 划词翻译        | 在 PDF 中选中文字，点击「翻译」，浮动面板流式显示译文；支持 LLM / DeepL / 有道智云三种引擎。                                                                                                          |
+| 无需登录        | 用户只需配置自己的 OpenAI 兼容 API Key（以及可选的 EasyScholar Key / 翻译服务 Key）。                                                                                                                 |
+
+---
+
+## 安装
+
+### 方式一：安装已构建的 XPI
+
+1. 直接使用本仓库已构建的 `dist/paper-miner.xpi`（或从 Releases 下载）。
+2. Zotero →「工具」→「插件」→ 右上角齿轮 →「Install Add-on From File…」，选择 XPI。
+3. 重启 Zotero。
+
+### 方式二：从源码构建
+
+需要 Node.js ≥ 20、npm（已安装依赖时可直接构建）：
+
+```bash
+npm install            # 首次
+npm run build          # 输出 .scaffold/build/addon + XPI
+```
+
+构建产物位于 `.scaffold/build/`（XPI 为 `paper-miner.xpi`）。开发调试见文末「开发」。
+
+---
+
+## 快速配置
+
+安装后打开 **Zotero →「编辑」→「设置」→「PaperMiner」**。
+
+### 1. AI 服务（对话 / 摘要 / PPT / 翻译必需）
+
+1. 选择服务商预设（OpenAI、DeepSeek、Kimi、智谱、通义、SiliconFlow、OpenRouter、Gemini、Claude 或「自定义」；默认是「自定义」，不绑定任何平台）。
+2. 填写 **API Key**；Base URL 与模型会随预设自动填充，也可手动修改。
+3. 点击 **获取模型列表**，可直接读取该 Key 可用的模型并填入候选；点击 **测试连接**，看到「连接成功」即可。
+4. 「关闭深度思考/推理」是通用开关：只有声明支持该参数的服务商（如 DeepSeek）会收到额外请求字段，其他服务商保持标准 OpenAI 兼容请求，不受影响。
+
+> 任意 OpenAI 兼容接口都可用，模型列表通过当前 Base URL + API Key 动态获取。若使用本地模型（Ollama、LM Studio 等），选择「自定义」，Base URL 填例如 `http://127.0.0.1:11434/v1`。
+
+### 2. EasyScholar 期刊分区（可选）
+
+1. 打开 <https://www.easyscholar.cc/> 免费注册并登录。
+2. 用户信息 →「开放接口」→ 复制密钥。
+3. 粘贴到设置中的 **EasyScholar 密钥**，点击 **检测密钥**（会用 Nature 做一次真实查询），确认有效后勾选想显示的字段（中科院分区、IF、CSSCI/北大核心/CSCD/科技核心、预警等）。
+
+> 中文期刊默认开启 CSSCI、北大核心、CSCD、中国科技核心、卓越行动计划梯队等字段；如果之前安装过旧版本，升级后会自动迁移默认字段设置。
+
+> 不配置 EasyScholar 时，AI 与撤稿功能仍可正常使用。
+
+### 3. 撤稿检测（无需配置）
+
+默认开启。使用 Zotero 内置撤稿数据 + OpenAlex + Crossref 公共接口，按 DOI 查询；无 DOI 的条目会提示无法检测。
+
+### 4. 划词翻译（可选）
+
+- 默认复用已配置的 AI 模型（质量好、支持上下文），可在设置中填写「AI 翻译自定义提示词」。
+- 也可在设置中选择 **DeepL**（填 API Key）、**有道智云**（填 App Key / App Secret）或 **腾讯云机器翻译**（填 SecretId / SecretKey / 地域）。
+
+---
+
+## 使用
+
+- **选中文献**：右侧信息栏出现「PaperMiner」区块，展示期刊徽章、撤稿状态，以及「AI 摘要 / 阅读对话 / 生成 PPT / 刷新信息」按钮。
+- **文献列表**：右键列标题 → 勾选「期刊」列，可查看分区/影响因子/预警。
+- **打开 PDF**：阅读器顶部显示预警/撤稿横幅；工具栏出现 PaperMiner 对话按钮，点击后右侧停靠聊天面板。
+- **划词**：在 PDF 中选中文本 → 原生菜单中出现「翻译」「问 AI」；标注右键菜单也支持翻译/询问。
+- **条目右键菜单**：右键文献（或 PDF 附件）→「PaperMiner」子菜单：更新期刊分区、检测撤稿、生成 AI 摘要、生成汇报 PPT、与论文对话、划词翻译、打开 PaperMiner 设置；支持多选批量更新期刊/撤稿/摘要/PPT。
+- **PDF 页面右键菜单**：在阅读器中右键页面 → PaperMiner 菜单：翻译选中文字、就选中文字提问、生成 AI 阅读摘要、生成汇报 PPT、打开阅读对话、刷新期刊与撤稿信息。
+
+### 生成的文件位置
+
+- AI 摘要：条目的子笔记（默认标签 `PaperMiner-AI阅读摘要`）。
+- PPT：`~/Downloads/PaperMiner/*.pptx`（可在设置中修改目录）。
+- 缓存 / 对话记录：`<Zotero 数据目录>/paperminer/`。
+
+---
+
+## 隐私与数据
+
+- API Key 存放在本机 Zotero 配置（`prefs.js`）中，不会上传到任何 PaperMiner 服务器。
+- 论文正文只发送给**你配置的**模型服务商 / 翻译服务商；EasyScholar 只接收期刊名，OpenAlex/Crossref 只接收 DOI。
+- 插件不包含统计、追踪或远程日志。
+- 建议不要在共享电脑上保存 API Key。
+
+---
+
+## 已知限制
+
+- 撤稿检测依赖 DOI；中文期刊、无 DOI 的会议论文可能无法检测。
+- AI 摘要 / PPT 质量取决于所选模型与 PDF 文本可提取性（扫描版 PDF 需先 OCR）。
+- 期刊分区以 EasyScholar 数据为准；不同分区体系（JCR / 中科院基础版 / 升级版）可能不同。
+- PPT 为文本大纲型演示文稿，不会自动截取论文插图。
+- 生成内容由 AI 产生，请自行核对事实与引用。
+
+---
+
+## 开发
+
+```bash
+npm install
+cp .env.example .env   # 填写 Zotero 可执行文件与开发 profile 路径
+npm start              # 启动开发模式（热重载）
+npm run build          # 类型检查 + 打包
+npm test               # 在 Zotero 内运行 mocha 测试
+```
+
+目录结构：
+
+```
+src/
+  modules/
+    ai/          # LLM 客户端、摘要、PPT、翻译、正文提取
+    journal/     # EasyScholar 期刊分区
+    retraction/  # 撤稿检测（Zotero / OpenAlex / Crossref）
+    chat/        # 对话上下文与会话存储
+    ui/          # 条目面板、列表列、阅读器横幅、聊天面板、划词交互
+    preferences/ # 设置面板
+  utils/         # prefs / cache / fs / dom / i18n / styles
+addon/           # manifest、bootstrap、XHTML、locale、CSS、图标
+```
+
+架构与模块契约见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+
+## 致谢
+
+- 基于 [zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template) 与 [zotero-plugin-toolkit](https://github.com/windingwind/zotero-plugin-toolkit)。
+- 交互与实现思路参考 [zotero-reference](https://github.com/MuiseDestiny/zotero-reference) 与 [paper-chat-for-zotero](https://github.com/syt2/paper-chat-for-zotero)。
+- 期刊数据由 [EasyScholar](https://www.easyscholar.cc/) 提供；撤稿数据来自 Zotero / [OpenAlex](https://openalex.org/) / [Crossref](https://www.crossref.org/)。
+
+## License
+
+AGPL-3.0-or-later

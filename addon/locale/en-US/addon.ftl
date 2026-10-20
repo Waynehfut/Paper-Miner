@@ -1,0 +1,76 @@
+paperminer-prefs-title = PaperMiner
+paperminer-copied = Copied
+paperminer-loading = Loading…
+paperminer-error = Something went wrong
+paperminer-cancel = Cancel
+paperminer-close = Close
+paperminer-refresh = Refresh
+paperminer-settings = Settings
+paperminer-copy = Copy
+paperminer-retry = Retry
+
+paperminer-action-summary = AI Summary
+paperminer-action-chat = Chat with Paper
+paperminer-action-ppt = Generate Slides
+paperminer-action-refresh = Refresh
+paperminer-action-settings = Settings
+
+paperminer-journal-title = Journal Metrics
+paperminer-journal-unconfigured = EasyScholar key not configured. Click to open settings.
+paperminer-journal-region = Journal Metrics
+paperminer-journal-notfound = Journal not found in EasyScholar
+paperminer-journal-error = Failed to load journal metrics
+paperminer-journal-loading = Looking up journal metrics…
+paperminer-journal-empty = No journal metrics
+paperminer-journal-warning = Early-warning journal
+paperminer-journal-no-doi = No DOI, retraction check unavailable
+paperminer-retraction-title = Retraction Check
+paperminer-retraction-retracted = This paper has been retracted
+paperminer-retraction-clear = No retraction found
+paperminer-retraction-unknown = Retraction data unavailable
+paperminer-retraction-checking = Checking retraction…
+paperminer-retraction-date = Retraction date
+paperminer-retraction-reason = Reason
+paperminer-retraction-notice = View retraction notice
+
+paperminer-chat-title = Chat with Paper
+paperminer-chat-placeholder = Ask about this paper. Enter to send, Shift+Enter for a new line.
+paperminer-chat-send = Send
+paperminer-chat-stop = Stop
+paperminer-chat-new = New chat
+paperminer-chat-empty = Select text in the PDF to translate or ask. Or start with:
+paperminer-chat-suggest-1 = What is the core contribution of this paper?
+paperminer-chat-suggest-2 = Explain the method in plain language
+paperminer-chat-suggest-3 = What are the limitations of the experiments?
+paperminer-chat-suggest-4 = How is this related to my research?
+paperminer-chat-thinking = Thinking…
+paperminer-chat-translating = Translating…
+paperminer-chat-not-configured = AI service not configured. Click to open settings.
+paperminer-chat-no-pdf = No PDF attachment for this item
+paperminer-chat-context = context
+paperminer-chat-error = Chat failed
+paperminer-chat-quoted = Quoted
+
+paperminer-translate = Translate
+paperminer-translate-title = PaperMiner Translation
+paperminer-translate-ask = Ask AI
+paperminer-translate-target = Target language
+paperminer-translate-copy = Copy translation
+paperminer-translate-error = Translation failed
+paperminer-translate-empty = Nothing to translate
+
+paperminer-summary-title = AI Reading Summary
+paperminer-summary-generating = Generating AI summary…
+paperminer-summary-done = AI summary saved as a child note
+paperminer-summary-failed = Failed to generate AI summary
+
+paperminer-ppt-title = Generate Slides
+paperminer-ppt-extracting = Extracting paper text…
+paperminer-ppt-outline = Generating slide outline…
+paperminer-ppt-rendering = Rendering slides…
+paperminer-ppt-writing = Writing file…
+paperminer-ppt-done = Slides generated
+paperminer-ppt-failed = Failed to generate slides
+
+paperminer-chat-role-avatar-user = You
+paperminer-chat-role-avatar-assistant = PM

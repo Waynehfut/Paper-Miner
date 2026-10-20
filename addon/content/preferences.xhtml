@@ -1,0 +1,782 @@
+<vbox
+  id="paperminer-prefpane"
+  onload="Zotero.PaperMiner.hooks.onPrefsEvent('load', { window })"
+>
+  <linkset>
+    <html:link rel="localization" href="paperminer-preferences.ftl" />
+  </linkset>
+
+  <vbox class="main-section">
+    <!-- ============================ AI 服务 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-ai-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-ai-title"
+          data-l10n-id="paperminer-pref-ai-title"
+        ></html:h2>
+      </label>
+      <description data-l10n-id="paperminer-pref-ai-desc"></description>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-llm-preset"
+          control="pm-llm-preset"
+        ></label>
+        <menulist id="pm-llm-preset" native="true" flex="1">
+          <menupopup id="pm-llm-preset-popup"></menupopup>
+        </menulist>
+      </hbox>
+      <description
+        data-l10n-id="paperminer-pref-llm-provider-desc"
+      ></description>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-llm-baseurl"
+          control="pm-llm-baseurl"
+        ></label>
+        <html:input
+          id="pm-llm-baseurl"
+          class="pm-pref-input"
+          type="text"
+          flex="1"
+          placeholder="https://api.example.com/v1"
+        ></html:input>
+      </hbox>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-llm-apikey"
+          control="pm-llm-apikey"
+        ></label>
+        <html:input
+          id="pm-llm-apikey"
+          class="pm-pref-input"
+          type="password"
+          flex="1"
+          placeholder="sk-..."
+        ></html:input>
+        <button
+          id="pm-toggle-apikey"
+          data-l10n-id="paperminer-pref-show"
+        ></button>
+      </hbox>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-llm-model"
+          control="pm-llm-model"
+        ></label>
+        <menulist id="pm-llm-model" native="true" editable="true" flex="1">
+          <menupopup id="pm-llm-model-popup"></menupopup>
+        </menulist>
+        <button
+          id="pm-llm-fetch-models"
+          data-l10n-id="paperminer-pref-llm-fetch-models"
+        ></button>
+      </hbox>
+
+      <hbox align="center">
+        <button id="pm-llm-test" data-l10n-id="paperminer-pref-test"></button>
+        <label id="pm-llm-status" class="pm-pref-status"></label>
+      </hbox>
+
+      <vbox id="pm-llm-advanced" class="pm-pref-advanced">
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-llm-temperature"
+            control="pm-llm-temperature"
+          ></label>
+          <html:input
+            id="pm-llm-temperature"
+            class="pm-pref-number"
+            type="number"
+            min="0"
+            max="2"
+            step="0.1"
+            inputmode="decimal"
+          ></html:input>
+          <label
+            class="pm-pref-unit"
+            data-l10n-id="paperminer-pref-unit-range-temp"
+          ></label>
+          <label
+            data-l10n-id="paperminer-pref-llm-maxtokens"
+            control="pm-llm-maxtokens"
+          ></label>
+          <html:input
+            id="pm-llm-maxtokens"
+            class="pm-pref-number"
+            type="number"
+            min="256"
+            max="65536"
+            step="128"
+            inputmode="numeric"
+          ></html:input>
+          <label
+            class="pm-pref-unit"
+            data-l10n-id="paperminer-pref-unit-tokens"
+          ></label>
+        </hbox>
+        <hbox align="center">
+          <checkbox
+            id="pm-llm-stream"
+            data-l10n-id="paperminer-pref-llm-stream"
+          ></checkbox>
+          <checkbox
+            id="pm-llm-disable-thinking"
+            data-l10n-id="paperminer-pref-llm-disable-thinking"
+          ></checkbox>
+        </hbox>
+        <description
+          id="pm-llm-thinking-note"
+          data-l10n-id="paperminer-pref-llm-thinking-note"
+        ></description>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-llm-summarymodel"
+            control="pm-llm-summarymodel"
+          ></label>
+          <html:input
+            id="pm-llm-summarymodel"
+            class="pm-pref-input"
+            type="text"
+            flex="1"
+          ></html:input>
+        </hbox>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-llm-translatemodel"
+            control="pm-llm-translatemodel"
+          ></label>
+          <html:input
+            id="pm-llm-translatemodel"
+            class="pm-pref-input"
+            type="text"
+            flex="1"
+          ></html:input>
+        </hbox>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-llm-pptmodel"
+            control="pm-llm-pptmodel"
+          ></label>
+          <html:input
+            id="pm-llm-pptmodel"
+            class="pm-pref-input"
+            type="text"
+            flex="1"
+          ></html:input>
+        </hbox>
+      </vbox>
+    </groupbox>
+
+    <!-- ============================ 期刊信息 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-journal-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-journal-title"
+          data-l10n-id="paperminer-pref-journal-title"
+        ></html:h2>
+      </label>
+      <description data-l10n-id="paperminer-pref-journal-desc"></description>
+
+      <checkbox
+        id="pm-journal-enabled"
+        data-l10n-id="paperminer-pref-journal-enabled"
+      ></checkbox>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-journal-secret"
+          control="pm-journal-secret"
+        ></label>
+        <html:input
+          id="pm-journal-secret"
+          class="pm-pref-input"
+          type="password"
+          flex="1"
+        ></html:input>
+        <button
+          id="pm-journal-open-site"
+          data-l10n-id="paperminer-pref-journal-getscret"
+        ></button>
+        <button
+          id="pm-journal-test"
+          data-l10n-id="paperminer-pref-journal-test"
+        ></button>
+      </hbox>
+      <hbox align="center">
+        <label id="pm-journal-status" class="pm-pref-status"></label>
+      </hbox>
+
+      <groupbox aria-labelledby="paperminer-pref-journal-fields-title">
+        <label>
+          <html:h3
+            id="paperminer-pref-journal-fields-title"
+            data-l10n-id="paperminer-pref-journal-fields"
+          ></html:h3>
+        </label>
+        <vbox id="pm-journal-fields" class="pm-pref-checkgrid"></vbox>
+      </groupbox>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-journal-cachedays"
+          control="pm-journal-cachedays"
+        ></label>
+        <html:input
+          id="pm-journal-cachedays"
+          class="pm-pref-number"
+          type="number"
+          min="1"
+          max="365"
+        ></html:input>
+        <spacer flex="1"></spacer>
+        <checkbox
+          id="pm-journal-showsection"
+          data-l10n-id="paperminer-pref-journal-showsection"
+        ></checkbox>
+        <checkbox
+          id="pm-journal-showcolumn"
+          data-l10n-id="paperminer-pref-journal-showcolumn"
+        ></checkbox>
+        <checkbox
+          id="pm-journal-showbanner"
+          data-l10n-id="paperminer-pref-journal-showbanner"
+        ></checkbox>
+        <button
+          id="pm-journal-clear"
+          data-l10n-id="paperminer-pref-clear-cache"
+        ></button>
+      </hbox>
+    </groupbox>
+
+    <!-- ============================ 撤稿检测 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-retraction-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-retraction-title"
+          data-l10n-id="paperminer-pref-retraction-title"
+        ></html:h2>
+      </label>
+      <description data-l10n-id="paperminer-pref-retraction-desc"></description>
+
+      <hbox align="center">
+        <checkbox
+          id="pm-ret-enabled"
+          data-l10n-id="paperminer-pref-retraction-enabled"
+        ></checkbox>
+        <checkbox
+          id="pm-ret-zotero"
+          data-l10n-id="paperminer-pref-retraction-zotero"
+        ></checkbox>
+        <checkbox
+          id="pm-ret-openalex"
+          data-l10n-id="paperminer-pref-retraction-openalex"
+        ></checkbox>
+        <checkbox
+          id="pm-ret-crossref"
+          data-l10n-id="paperminer-pref-retraction-crossref"
+        ></checkbox>
+      </hbox>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-retraction-cachedays"
+          control="pm-ret-cachedays"
+        ></label>
+        <html:input
+          id="pm-ret-cachedays"
+          class="pm-pref-number"
+          type="number"
+          min="1"
+          max="365"
+        ></html:input>
+        <spacer flex="1"></spacer>
+        <checkbox
+          id="pm-ret-banner"
+          data-l10n-id="paperminer-pref-retraction-banner"
+        ></checkbox>
+        <button
+          id="pm-retraction-clear"
+          data-l10n-id="paperminer-pref-clear-cache"
+        ></button>
+      </hbox>
+    </groupbox>
+
+    <!-- ============================ AI 摘要 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-summary-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-summary-title"
+          data-l10n-id="paperminer-pref-summary-title"
+        ></html:h2>
+      </label>
+
+      <description data-l10n-id="paperminer-pref-summary-desc"></description>
+      <hbox align="center">
+        <checkbox
+          id="pm-sum-auto"
+          data-l10n-id="paperminer-pref-summary-auto"
+        ></checkbox>
+        <label
+          data-l10n-id="paperminer-pref-summary-tag"
+          control="pm-sum-tag"
+        ></label>
+        <html:input
+          id="pm-sum-tag"
+          class="pm-pref-input"
+          type="text"
+          style="width: 220px"
+        ></html:input>
+        <label
+          data-l10n-id="paperminer-pref-summary-lang"
+          control="pm-sum-lang"
+        ></label>
+        <menulist id="pm-sum-lang" native="true">
+          <menupopup>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-auto"
+              value="auto"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-zh"
+              value="zh"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-en"
+              value="en"
+            ></menuitem>
+          </menupopup>
+        </menulist>
+      </hbox>
+
+      <vbox>
+        <label
+          data-l10n-id="paperminer-pref-summary-prompt"
+          control="pm-sum-prompt"
+        ></label>
+        <html:textarea
+          id="pm-sum-prompt"
+          class="pm-pref-textarea"
+          rows="3"
+          placeholder="可选：附加的摘要偏好，例如“侧重方法细节与可复现性”"
+        ></html:textarea>
+      </vbox>
+    </groupbox>
+
+    <!-- ============================ 阅读对话 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-chat-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-chat-title"
+          data-l10n-id="paperminer-pref-chat-title"
+        ></html:h2>
+      </label>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-chat-context"
+          control="pm-chat-context"
+        ></label>
+        <html:input
+          id="pm-chat-context"
+          class="pm-pref-number"
+          type="number"
+          min="1000"
+          max="200000"
+          step="1000"
+          inputmode="numeric"
+        ></html:input>
+        <label
+          class="pm-pref-unit"
+          data-l10n-id="paperminer-pref-unit-chars"
+        ></label>
+      </hbox>
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-chat-history"
+          control="pm-chat-history"
+        ></label>
+        <html:input
+          id="pm-chat-history"
+          class="pm-pref-number"
+          type="number"
+          min="0"
+          max="100"
+          step="1"
+          inputmode="numeric"
+        ></html:input>
+        <label
+          class="pm-pref-unit"
+          data-l10n-id="paperminer-pref-unit-messages"
+        ></label>
+        <label
+          data-l10n-id="paperminer-pref-chat-temp"
+          control="pm-chat-temp"
+        ></label>
+        <html:input
+          id="pm-chat-temp"
+          class="pm-pref-number"
+          type="number"
+          min="0"
+          max="2"
+          step="0.1"
+          inputmode="decimal"
+        ></html:input>
+        <spacer flex="1"></spacer>
+        <checkbox
+          id="pm-chat-persist"
+          data-l10n-id="paperminer-pref-chat-persist"
+        ></checkbox>
+        <button
+          id="pm-chat-clear"
+          data-l10n-id="paperminer-pref-chat-clear"
+        ></button>
+      </hbox>
+
+      <groupbox aria-labelledby="paperminer-pref-chat-template-presets-title">
+        <label>
+          <html:h3
+            id="paperminer-pref-chat-template-presets-title"
+            data-l10n-id="paperminer-pref-chat-template-presets-title"
+          ></html:h3>
+        </label>
+        <description
+          data-l10n-id="paperminer-pref-chat-template-presets-desc"
+        ></description>
+        <vbox
+          id="pm-chat-template-presets"
+          class="pm-pref-template-list"
+        ></vbox>
+      </groupbox>
+
+      <vbox>
+        <label
+          data-l10n-id="paperminer-pref-chat-system-prompt"
+          control="pm-chat-system-prompt"
+        ></label>
+        <html:textarea
+          id="pm-chat-system-prompt"
+          class="pm-pref-textarea"
+          rows="3"
+          placeholder="追加到默认系统提示词之后，例如：回答时优先给出原文依据，并指出可能的反例。"
+        ></html:textarea>
+        <description
+          data-l10n-id="paperminer-pref-chat-system-prompt-desc"
+        ></description>
+      </vbox>
+
+      <vbox>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-chat-quick-phrases"
+            control="pm-chat-quick-phrases"
+          ></label>
+          <spacer flex="1"></spacer>
+          <button
+            id="pm-chat-add-template"
+            data-l10n-id="paperminer-pref-chat-add-template"
+          ></button>
+        </hbox>
+        <html:textarea
+          id="pm-chat-quick-phrases"
+          class="pm-pref-textarea"
+          rows="4"
+          placeholder="每行一条对话模板，例如：&#10;审稿人视角 | 请从审稿人角度指出这篇论文的主要缺陷和拒稿理由。&#10;复现要点 | 提炼复现这篇论文所需的数据、代码和关键步骤。"
+        ></html:textarea>
+        <description
+          data-l10n-id="paperminer-pref-chat-quick-phrases-desc"
+        ></description>
+      </vbox>
+    </groupbox>
+
+    <!-- ============================ PPT ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-ppt-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-ppt-title"
+          data-l10n-id="paperminer-pref-ppt-title"
+        ></html:h2>
+      </label>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-ppt-slides"
+          control="pm-ppt-slides"
+        ></label>
+        <html:input
+          id="pm-ppt-slides"
+          class="pm-pref-number"
+          type="number"
+          min="5"
+          max="30"
+          step="1"
+          inputmode="numeric"
+        ></html:input>
+        <label
+          data-l10n-id="paperminer-pref-ppt-lang"
+          control="pm-ppt-lang"
+        ></label>
+        <menulist id="pm-ppt-lang" native="true">
+          <menupopup>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-auto"
+              value="auto"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-zh"
+              value="zh"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-en"
+              value="en"
+            ></menuitem>
+          </menupopup>
+        </menulist>
+        <checkbox
+          id="pm-ppt-open"
+          data-l10n-id="paperminer-pref-ppt-open"
+        ></checkbox>
+      </hbox>
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-ppt-dir"
+          control="pm-ppt-dir"
+        ></label>
+        <html:input
+          id="pm-ppt-dir"
+          class="pm-pref-input"
+          type="text"
+          flex="1"
+          placeholder="留空则保存到 下载/PaperMiner"
+        ></html:input>
+        <button
+          id="pm-ppt-pick-dir"
+          data-l10n-id="paperminer-pref-browse"
+        ></button>
+      </hbox>
+      <vbox>
+        <label
+          data-l10n-id="paperminer-pref-ppt-prompt"
+          control="pm-ppt-prompt"
+        ></label>
+        <html:textarea
+          id="pm-ppt-prompt"
+          class="pm-pref-textarea"
+          rows="3"
+          placeholder="可选：追加的幻灯片要求，例如“多用图表页、每页只放一个核心结论、面向非专业听众”。"
+        ></html:textarea>
+        <description
+          data-l10n-id="paperminer-pref-ppt-prompt-desc"
+        ></description>
+      </vbox>
+    </groupbox>
+
+    <!-- ============================ 划词翻译 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-translate-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-translate-title"
+          data-l10n-id="paperminer-pref-translate-title"
+        ></html:h2>
+      </label>
+
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-translate-engine"
+          control="pm-tr-engine"
+        ></label>
+        <menulist id="pm-tr-engine" native="true">
+          <menupopup>
+            <menuitem
+              data-l10n-id="paperminer-pref-translate-engine-llm"
+              value="llm"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-translate-engine-deepl"
+              value="deepl"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-translate-engine-youdao"
+              value="youdao"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-translate-engine-tencent"
+              value="tencent"
+            ></menuitem>
+          </menupopup>
+        </menulist>
+        <label
+          data-l10n-id="paperminer-pref-translate-target"
+          control="pm-tr-target"
+        ></label>
+        <menulist id="pm-tr-target" native="true" editable="true">
+          <menupopup>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-auto"
+              value="auto"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-zh"
+              value="zh-CN"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-en"
+              value="en"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-ja"
+              value="ja"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-lang-ko"
+              value="ko"
+            ></menuitem>
+          </menupopup>
+        </menulist>
+        <spacer flex="1"></spacer>
+        <checkbox
+          id="pm-tr-showpopup"
+          data-l10n-id="paperminer-pref-translate-showpopup"
+        ></checkbox>
+      </hbox>
+
+      <vbox id="pm-tr-deepl" class="pm-pref-engine">
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-deepl-key"
+            control="pm-tr-deepl-key"
+          ></label>
+          <html:input
+            id="pm-tr-deepl-key"
+            class="pm-pref-input"
+            type="password"
+            flex="1"
+          ></html:input>
+        </hbox>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-deepl-endpoint"
+            control="pm-tr-deepl-endpoint"
+          ></label>
+          <html:input
+            id="pm-tr-deepl-endpoint"
+            class="pm-pref-input"
+            type="text"
+            flex="1"
+          ></html:input>
+        </hbox>
+      </vbox>
+
+      <vbox id="pm-tr-youdao" class="pm-pref-engine">
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-youdao-key"
+            control="pm-tr-youdao-key"
+          ></label>
+          <html:input
+            id="pm-tr-youdao-key"
+            class="pm-pref-input"
+            type="text"
+            flex="1"
+          ></html:input>
+        </hbox>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-youdao-secret"
+            control="pm-tr-youdao-secret"
+          ></label>
+          <html:input
+            id="pm-tr-youdao-secret"
+            class="pm-pref-input"
+            type="password"
+            flex="1"
+          ></html:input>
+        </hbox>
+      </vbox>
+      <vbox>
+        <label
+          data-l10n-id="paperminer-pref-translate-prompt"
+          control="pm-tr-prompt"
+        ></label>
+        <html:textarea
+          id="pm-tr-prompt"
+          class="pm-pref-textarea"
+          rows="3"
+          placeholder="仅在选择 AI 翻译时生效，例如：保持被动语态，术语采用《...》译法。"
+        ></html:textarea>
+        <description
+          data-l10n-id="paperminer-pref-translate-prompt-desc"
+        ></description>
+      </vbox>
+
+      <vbox id="pm-tr-tencent" class="pm-pref-engine">
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-tencent-key"
+            control="pm-tr-tencent-key"
+          ></label>
+          <html:input
+            id="pm-tr-tencent-key"
+            class="pm-pref-input"
+            type="text"
+            flex="1"
+          ></html:input>
+        </hbox>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-tencent-secret"
+            control="pm-tr-tencent-secret"
+          ></label>
+          <html:input
+            id="pm-tr-tencent-secret"
+            class="pm-pref-input"
+            type="password"
+            flex="1"
+          ></html:input>
+        </hbox>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-tencent-region"
+            control="pm-tr-tencent-region"
+          ></label>
+          <html:input
+            id="pm-tr-tencent-region"
+            class="pm-pref-input"
+            type="text"
+            placeholder="ap-guangzhou"
+          ></html:input>
+        </hbox>
+      </vbox>
+    </groupbox>
+
+    <!-- ============================ 关于 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-about-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-about-title"
+          data-l10n-id="paperminer-pref-about-title"
+        ></html:h2>
+      </label>
+      <description id="pm-about-version"></description>
+      <hbox align="center">
+        <button
+          id="pm-open-datadir"
+          data-l10n-id="paperminer-pref-open-datadir"
+        ></button>
+        <button
+          id="pm-reset-prefs"
+          data-l10n-id="paperminer-pref-reset"
+        ></button>
+        <spacer flex="1"></spacer>
+        <html:a
+          class="pm-pref-link"
+          href="https://github.com/"
+          data-l10n-id="paperminer-pref-homepage"
+        ></html:a>
+      </hbox>
+    </groupbox>
+  </vbox>
+</vbox>

@@ -1,0 +1,408 @@
+/* PaperMiner shared styles. Matches Zotero's native item pane / reader look. */
+
+:root {
+  --pm-text: var(--fill-primary, #18181b);
+  --pm-text-secondary: var(--fill-secondary, #52525b);
+  --pm-text-muted: var(--fill-tertiary, #71717a);
+  --pm-border: var(--material-border, rgba(0, 0, 0, 0.12));
+  --pm-border-strong: var(--material-border-quarternary, rgba(0, 0, 0, 0.2));
+  --pm-bg: var(--material-background, #ffffff);
+  --pm-bg-subtle: var(--material-mix-quinary, rgba(0, 0, 0, 0.03));
+  --pm-bg-hover: var(--fill-quinary, rgba(0, 0, 0, 0.06));
+  --pm-accent: var(--accent-blue, #2563eb);
+  --pm-danger: var(--accent-red, #dc2626);
+  --pm-warning: var(--accent-orange, #d97706);
+  --pm-success: var(--accent-green, #16a34a);
+  --pm-radius: 6px;
+  --pm-font:
+    system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pm-text: var(--fill-primary, #f4f4f5);
+    --pm-text-secondary: var(--fill-secondary, #d4d4d8);
+    --pm-text-muted: var(--fill-tertiary, #a1a1aa);
+    --pm-border: var(--material-border, rgba(255, 255, 255, 0.16));
+    --pm-border-strong: var(
+      --material-border-quarternary,
+      rgba(255, 255, 255, 0.26)
+    );
+    --pm-bg: var(--material-background, #1f1f22);
+    --pm-bg-subtle: var(--material-mix-quinary, rgba(255, 255, 255, 0.05));
+    --pm-bg-hover: var(--fill-quinary, rgba(255, 255, 255, 0.09));
+    --pm-accent: var(--accent-blue, #60a5fa);
+    --pm-danger: var(--accent-red, #f87171);
+    --pm-warning: var(--accent-orange, #fbbf24);
+    --pm-success: var(--accent-green, #4ade80);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout helpers                                                      */
+/* ------------------------------------------------------------------ */
+
+.pm-root {
+  font-family: var(--pm-font);
+  color: var(--pm-text);
+  box-sizing: border-box;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pm-row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.pm-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pm-spacer {
+  flex: 1;
+}
+
+.pm-muted {
+  color: var(--pm-text-muted);
+  font-size: 12px;
+}
+
+.pm-secondary {
+  color: var(--pm-text-secondary);
+}
+
+/* Zotero-style monochrome icons: SVG used as a background so `context-fill`
+   resolves to the current text colour in both light and dark mode. */
+.pm-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  -moz-context-properties: fill, fill-opacity;
+  fill: currentColor;
+  opacity: 0.85;
+  pointer-events: none;
+  vertical-align: middle;
+}
+
+.pm-icon-sm {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
+}
+
+.pm-icon-nav {
+  width: 20px;
+  height: 20px;
+  flex-basis: 20px;
+}
+
+.pm-icon-lg {
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
+}
+
+/* Colourful plugin/brand icon used outside of item-pane chrome. */
+.pm-plugin-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.pm-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pm-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 6px;
+}
+
+.pm-divider {
+  height: 1px;
+  background: var(--pm-border);
+  margin: 8px 0;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                             */
+/* ------------------------------------------------------------------ */
+
+.pm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 10px;
+  border-radius: var(--pm-radius);
+  border: 1px solid var(--pm-border);
+  background: var(--pm-bg);
+  color: var(--pm-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.pm-btn:hover:not(:disabled) {
+  background: var(--pm-bg-hover);
+}
+
+.pm-btn:active:not(:disabled) {
+  background: var(--pm-bg-subtle);
+}
+
+.pm-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pm-btn:focus-visible {
+  outline: 2px solid var(--pm-accent);
+  outline-offset: 1px;
+}
+
+.pm-btn-primary {
+  background: var(--pm-accent);
+  border-color: var(--pm-accent);
+  color: #fff;
+}
+
+.pm-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  background: var(--pm-accent);
+}
+
+.pm-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.pm-btn-ghost:hover:not(:disabled) {
+  background: var(--pm-bg-hover);
+}
+
+.pm-btn-danger {
+  color: var(--pm-danger);
+}
+
+.pm-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--pm-text-secondary);
+  cursor: pointer;
+}
+
+.pm-icon-btn:hover {
+  background: var(--pm-bg-hover);
+  color: var(--pm-text);
+}
+
+/* ------------------------------------------------------------------ */
+/* Badges                                                              */
+/* ------------------------------------------------------------------ */
+
+.pm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.pm-badge-good {
+  color: var(--pm-success);
+  background: color-mix(in srgb, var(--pm-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pm-success) 30%, transparent);
+}
+
+.pm-badge-info {
+  color: var(--pm-accent);
+  background: color-mix(in srgb, var(--pm-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pm-accent) 30%, transparent);
+}
+
+.pm-badge-warn {
+  color: var(--pm-warning);
+  background: color-mix(in srgb, var(--pm-warning) 14%, transparent);
+  border-color: color-mix(in srgb, var(--pm-warning) 34%, transparent);
+}
+
+.pm-badge-bad {
+  color: var(--pm-danger);
+  background: color-mix(in srgb, var(--pm-danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pm-danger) 30%, transparent);
+}
+
+.pm-badge-neutral {
+  color: var(--pm-text-secondary);
+  background: var(--pm-bg-hover);
+  border-color: var(--pm-border);
+}
+
+/* ------------------------------------------------------------------ */
+/* Action grid (item pane)                                             */
+/* ------------------------------------------------------------------ */
+
+.pm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.pm-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--pm-border);
+  border-radius: var(--pm-radius);
+  background: var(--pm-bg);
+  color: var(--pm-text);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pm-action:hover:not(:disabled) {
+  background: var(--pm-bg-hover);
+}
+
+.pm-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------ */
+/* Warning banner                                                      */
+/* ------------------------------------------------------------------ */
+
+.pm-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--pm-radius);
+  border: 1px solid;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pm-banner-retracted {
+  color: var(--pm-danger);
+  background: color-mix(in srgb, var(--pm-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--pm-danger) 35%, transparent);
+}
+
+.pm-banner-warning {
+  color: var(--pm-warning);
+  background: color-mix(in srgb, var(--pm-warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--pm-warning) 35%, transparent);
+}
+
+.pm-banner-title {
+  font-weight: 600;
+}
+
+.pm-link {
+  color: var(--pm-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.pm-link:hover {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ */
+/* Inputs                                                              */
+/* ------------------------------------------------------------------ */
+
+.pm-input,
+.pm-select,
+.pm-textarea {
+  box-sizing: border-box;
+  border: 1px solid var(--pm-border-strong);
+  border-radius: var(--pm-radius);
+  background: var(--pm-bg);
+  color: var(--pm-text);
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 7px;
+}
+
+.pm-input:focus,
+.pm-select:focus,
+.pm-textarea:focus {
+  outline: none;
+  border-color: var(--pm-accent);
+}
+
+.pm-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Spinner                                                             */
+/* ------------------------------------------------------------------ */
+
+.pm-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--pm-border-strong);
+  border-top-color: var(--pm-accent);
+  border-radius: 50%;
+  animation: pm-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pm-empty {
+  color: var(--pm-text-muted);
+  font-size: 12px;
+  padding: 4px 0;
+}
