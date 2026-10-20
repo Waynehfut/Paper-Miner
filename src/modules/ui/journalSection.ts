@@ -25,8 +25,8 @@ import { refreshJournalColumn } from "./treeColumn";
 
 export const JOURNAL_SECTION_ID = "paperminer-journal";
 
-const ICON_URL = "chrome://zotero/skin/itempane/16/info.svg";
-const SIDENAV_ICON_URL = "chrome://zotero/skin/itempane/20/info.svg";
+const ICON_URL = `chrome://${config.addonRef}/content/icons/header-16.png`;
+const SIDENAV_ICON_URL = `chrome://${config.addonRef}/content/icons/sidenav-20.png`;
 const NOTIFIER_ID = "paperminer-journal-section";
 
 type SectionArgs = _ZoteroTypes.ItemPaneManagerSection.SectionHookArgs;
