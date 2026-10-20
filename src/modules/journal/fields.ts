@@ -468,72 +468,49 @@ export function hasWarning(
   ).some((field) => isWarningValue(getFieldValue(data, field)));
 }
 
-/** Compact text for the item-tree column, e.g. "1区 TOP · IF 12.3". */
+/** Compact text for the item-tree column. Mirrors the same badges as the item
+ *  pane, so every enabled field that appears in the pane also appears here. */
 export function formatShortText(
   data: JournalRankData | undefined,
   enabledFieldKeys: string[],
 ): string {
   if (!data) return "";
-  const enabled = new Set(enabledFieldKeys);
   const parts: string[] = [];
-
-  const sciUpRaw = getFieldValue(data, getDefinition("sciUp"));
-  const sciRaw = getFieldValue(data, getDefinition("sci"));
-  const topRaw = getFieldValue(data, getDefinition("sciUpTop"));
-  if (enabled.has("sciUp") && sciUpRaw) {
-    const quartile = normalizeQuartile(sciUpRaw);
-    const hasTop = /top/i.test(sciUpRaw) || /top/i.test(topRaw);
-    parts.push(
-      /top/i.test(quartile) ? quartile : hasTop ? `${quartile} TOP` : quartile,
-    );
-  } else if (enabled.has("sci") && sciRaw) {
-    parts.push(sciRaw.toUpperCase());
-  }
-
-  const metricKeys: Array<[string, string]> = [
-    ["sciif", "IF"],
-    ["sciif5", "5年IF"],
-    ["jci", "JCI"],
-  ];
-  for (const [key, label] of metricKeys) {
-    if (!enabled.has(key)) continue;
-    const value = getFieldValue(data, getDefinition(key));
-    if (value) parts.push(`${label} ${value}`);
-  }
-
-  // Chinese core lists are the primary signal for domestic journals.
-  const cnKeys: Array<[string, string]> = [
-    ["cssci", "CSSCI"],
-    ["pku", "北大核心"],
-    ["cscd", "CSCD"],
-    ["zhongguokejihexin", "科技核心"],
-    ["cju", "梯队"],
-  ];
-  const cnParts: string[] = [];
-  for (const [key, label] of cnKeys) {
-    if (!enabled.has(key)) continue;
-    const value = getFieldValue(data, getDefinition(key));
-    if (!value) continue;
-    if (key === "cscd" && /核心/i.test(value)) cnParts.push("CSCD 核心库");
-    else if (key === "cju") {
-      const tier = value.match(/T[1-3]/i)?.[0]?.toUpperCase();
-      cnParts.push(tier ? `梯队 ${tier}` : label);
-    } else {
-      cnParts.push(label);
+  for (const badge of buildBadges(data, enabledFieldKeys)) {
+    let text = "";
+    switch (badge.category) {
+      case "danger":
+        text = "预警";
+        break;
+      case "index":
+      case "open":
+        text =
+          badge.value === "收录"
+            ? badge.shortLabel
+            : `${badge.shortLabel} ${badge.value}`;
+        break;
+      case "level":
+        text = `${badge.shortLabel} ${badge.value}`;
+        break;
+      case "cas":
+        text =
+          badge.key === "sciUp" || badge.key === "sciBase"
+            ? badge.value
+            : `${badge.shortLabel} ${badge.value}`;
+        break;
+      case "sci":
+        text =
+          badge.key === "sci"
+            ? badge.value
+            : `${badge.shortLabel} ${badge.value}`;
+        break;
+      default:
+        text = badge.value;
+        break;
     }
+    if (text && !parts.includes(text)) parts.push(text);
   }
-  parts.push(...cnParts);
-
-  if (
-    JOURNAL_FIELDS.filter((field) => field.warning).some(
-      (field) =>
-        enabled.has(field.key) && isWarningValue(getFieldValue(data, field)),
-    )
-  ) {
-    parts.push("预警");
-  }
-
-  return [...new Set(parts)].join(" · ");
+  return parts.join(" · ");
 }
 
 /** Journal title normalization before querying/caching. */

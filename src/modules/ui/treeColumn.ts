@@ -157,17 +157,7 @@ function renderCell(
     .split(/\s*·\s*/)
     .map((part) => part.trim())
     .filter(Boolean);
-  const groups: Array<{ category: string; parts: string[] }> = [];
-  for (const part of parts) {
-    const category = partCategory(part);
-    const last = groups[groups.length - 1];
-    if (last && last.category === category) {
-      last.parts.push(part);
-    } else {
-      groups.push({ category, parts: [part] });
-    }
-  }
-  groups.forEach((group, index) => {
+  parts.forEach((part, index) => {
     if (index > 0) {
       cell.appendChild(
         htmlEl(doc, "span", {
@@ -178,8 +168,8 @@ function renderCell(
     }
     cell.appendChild(
       htmlEl(doc, "span", {
-        class: `pm-journal-cell-part pm-journal-cell-part-${group.category}`,
-        text: group.parts.join(" · "),
+        class: `pm-journal-cell-part pm-journal-cell-part-${partCategory(part)}`,
+        text: part,
       }),
     );
   });
@@ -261,7 +251,7 @@ export async function registerJournalColumn(): Promise<void> {
       label: t("journal-column-label", "期刊"),
       pluginID: config.addonID,
       enabledTreeIDs: ["main"],
-      width: "260",
+      width: "320",
       minWidth: 80,
       showInColumnPicker: true,
       zoteroPersist: ["width", "hidden", "sortDirection"],
