@@ -101,44 +101,84 @@
   border-top: 1px dashed var(--material-border-quarternary, rgba(0, 0, 0, 0.16));
 }
 
-#paperminer-prefpane .pm-pref-template-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 4px 0 10px;
-}
-
-#paperminer-prefpane .pm-pref-template {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 5px 8px;
-  border: 1px solid var(--material-border-quarternary, rgba(0, 0, 0, 0.12));
-  border-radius: 5px;
-  background: var(--material-mix-quinary, rgba(0, 0, 0, 0.03));
-}
-
-#paperminer-prefpane .pm-pref-template-name {
-  flex: 0 0 92px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-#paperminer-prefpane .pm-pref-template-prompt {
-  flex: 1;
-  min-width: 0;
-  font-size: 11px;
-  color: var(--fill-secondary, #52525b);
+#paperminer-prefpane .pm-skill-table {
+  margin: 6px 0 8px;
+  border: 1px solid var(--material-border-quarternary, rgba(0, 0, 0, 0.16));
+  border-radius: 6px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-#paperminer-prefpane .pm-pref-unit {
-  min-width: 0;
-  font-size: 11px;
+#paperminer-prefpane .pm-skill-head,
+#paperminer-prefpane .pm-skill-row {
+  display: grid;
+  grid-template-columns: 150px minmax(220px, 1fr) 34px;
+  gap: 8px;
+  align-items: start;
+  padding: 6px 8px;
+}
+
+#paperminer-prefpane .pm-skill-head {
+  border-bottom: 1px solid
+    var(--material-border-quarternary, rgba(0, 0, 0, 0.16));
+  background: var(--material-mix-quinary, rgba(0, 0, 0, 0.04));
   color: var(--fill-secondary, #52525b);
-  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+#paperminer-prefpane .pm-skill-head span:last-child {
+  text-align: center;
+}
+
+#paperminer-prefpane .pm-skill-row + .pm-skill-row {
+  border-top: 1px solid var(--material-border-quinary, rgba(0, 0, 0, 0.08));
+}
+
+#paperminer-prefpane .pm-skill-name,
+#paperminer-prefpane .pm-skill-prompt {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--material-border-quarternary, rgba(0, 0, 0, 0.18));
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: var(--material-background, #fff);
+  color: var(--fill-primary, #18181b);
+  font: inherit;
+  font-size: 12px;
+}
+
+#paperminer-prefpane .pm-skill-name {
+  height: 26px;
+}
+
+#paperminer-prefpane .pm-skill-prompt {
+  min-height: 46px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+#paperminer-prefpane .pm-skill-remove {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--pm-danger, #dc2626);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#paperminer-prefpane .pm-skill-remove:hover {
+  background: color-mix(in srgb, var(--pm-danger, #dc2626) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pm-danger, #dc2626) 28%, transparent);
+}
+
+#paperminer-prefpane .pm-skill-empty {
+  padding: 10px;
+  color: var(--fill-secondary, #71717a);
+  font-size: 11px;
 }
 
 #paperminer-prefpane .pm-pref-number {

@@ -460,20 +460,43 @@
         ></button>
       </hbox>
 
-      <groupbox aria-labelledby="paperminer-pref-chat-template-presets-title">
+      <groupbox aria-labelledby="paperminer-pref-chat-skills-title">
         <label>
           <html:h3
-            id="paperminer-pref-chat-template-presets-title"
-            data-l10n-id="paperminer-pref-chat-template-presets-title"
+            id="paperminer-pref-chat-skills-title"
+            data-l10n-id="paperminer-pref-chat-skills-title"
           ></html:h3>
         </label>
         <description
-          data-l10n-id="paperminer-pref-chat-template-presets-desc"
+          data-l10n-id="paperminer-pref-chat-skills-desc"
         ></description>
-        <vbox
-          id="pm-chat-template-presets"
-          class="pm-pref-template-list"
-        ></vbox>
+        <vbox id="pm-chat-skill-table" class="pm-skill-table"></vbox>
+        <hbox align="center">
+          <button
+            id="pm-chat-skill-add"
+            data-l10n-id="paperminer-pref-chat-skill-add"
+          ></button>
+          <button
+            id="pm-chat-skill-reset"
+            data-l10n-id="paperminer-pref-chat-skill-reset"
+          ></button>
+          <button
+            id="pm-chat-skill-import"
+            data-l10n-id="paperminer-pref-chat-skill-import"
+          ></button>
+          <button
+            id="pm-chat-skill-export"
+            data-l10n-id="paperminer-pref-chat-skill-export"
+          ></button>
+          <spacer flex="1"></spacer>
+          <label id="pm-chat-skill-status" class="pm-pref-status"></label>
+        </hbox>
+        <html:input
+          id="pm-chat-skill-file"
+          type="file"
+          accept=".json,.txt,application/json,text/plain"
+          style="display: none"
+        ></html:input>
       </groupbox>
 
       <vbox>
@@ -489,29 +512,6 @@
         ></html:textarea>
         <description
           data-l10n-id="paperminer-pref-chat-system-prompt-desc"
-        ></description>
-      </vbox>
-
-      <vbox>
-        <hbox align="center">
-          <label
-            data-l10n-id="paperminer-pref-chat-quick-phrases"
-            control="pm-chat-quick-phrases"
-          ></label>
-          <spacer flex="1"></spacer>
-          <button
-            id="pm-chat-add-template"
-            data-l10n-id="paperminer-pref-chat-add-template"
-          ></button>
-        </hbox>
-        <html:textarea
-          id="pm-chat-quick-phrases"
-          class="pm-pref-textarea"
-          rows="4"
-          placeholder="每行一条对话模板，例如：&#10;审稿人视角 | 请从审稿人角度指出这篇论文的主要缺陷和拒稿理由。&#10;复现要点 | 提炼复现这篇论文所需的数据、代码和关键步骤。"
-        ></html:textarea>
-        <description
-          data-l10n-id="paperminer-pref-chat-quick-phrases-desc"
         ></description>
       </vbox>
     </groupbox>

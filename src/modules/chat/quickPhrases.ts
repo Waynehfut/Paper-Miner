@@ -1,21 +1,22 @@
 /**
- * User-configurable conversation templates ("quick phrases").
+ * Skills shown as conversation templates in the chat panel.
  *
- * Templates are stored one per line in the `chatQuickPhrases` preference.
- * A line may be `名称 | 提示词` or just a prompt. Defaults inspired by the
- * paper-chat plugin are always offered first; user lines are appended.
+ * Each skill has a short name and an instruction prompt. The editable table in
+ * preferences stores the complete skill list as JSON in `chatSkills`; the old
+ * `chatQuickPhrases` line format is still read once for backwards
+ * compatibility, and also accepted by the import button.
  */
 
-import { getPref } from "../../utils/prefs";
+import { getPref, setPref } from "../../utils/prefs";
 
 export interface QuickPhrase {
   label: string;
   prompt: string;
 }
 
-export const MAX_QUICK_PHRASES = 12;
+export const MAX_QUICK_PHRASES = 50;
 
-const DEFAULT_TEMPLATES: QuickPhrase[] = [
+export const DEFAULT_TEMPLATES: QuickPhrase[] = [
   {
     label: "总结核心贡献",
     prompt:
@@ -71,8 +72,74 @@ export function parseQuickPhrases(text: string): QuickPhrase[] {
   return result;
 }
 
-/** Defaults plus the user's custom templates, deduplicated by prompt. */
+/** Parse a JSON skill list, or fall back to the legacy `名称 | 提示词` text. */
+export function parseSkillsPayload(text: string): QuickPhrase[] {
+  const raw = String(text || "").trim();
+  if (!raw) return [];
+  let data: unknown;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return parseQuickPhrases(raw);
+  }
+  let items: unknown[] = [];
+  if (Array.isArray(data)) {
+    items = data;
+  } else if (data && typeof data === "object") {
+    const record = data as Record<string, unknown>;
+    const candidate = record.skills ?? record.templates ?? record.items;
+    if (Array.isArray(candidate)) items = candidate;
+  }
+  const result: QuickPhrase[] = [];
+  const seen = new Set<string>();
+  for (const item of items) {
+    let label = "";
+    let prompt = "";
+    if (typeof item === "string") {
+      const parsed = parseQuickPhrases(item)[0];
+      if (parsed) {
+        label = parsed.label;
+        prompt = parsed.prompt;
+      }
+    } else if (item && typeof item === "object") {
+      const record = item as Record<string, unknown>;
+      label = String(record.label ?? record.name ?? "").trim();
+      prompt = String(
+        record.prompt ?? record.instruction ?? record.content ?? "",
+      ).trim();
+    }
+    if (!prompt || seen.has(prompt)) continue;
+    seen.add(prompt);
+    result.push({ label: label || prompt.slice(0, 18), prompt });
+    if (result.length >= MAX_QUICK_PHRASES) break;
+  }
+  return result;
+}
+
+/** Save the complete editable skill list. */
+export function saveQuickPhrases(phrases: QuickPhrase[]): void {
+  const normalized = phrases
+    .map((phrase) => ({
+      label: String(phrase.label || "").trim() || "未命名技能",
+      prompt: String(phrase.prompt || "").trim(),
+    }))
+    .filter((phrase) => phrase.prompt)
+    .slice(0, MAX_QUICK_PHRASES);
+  setPref("chatSkills", JSON.stringify(normalized) as never);
+}
+
+export function getDefaultTemplates(): QuickPhrase[] {
+  return DEFAULT_TEMPLATES.map((phrase) => ({ ...phrase }));
+}
+
+/** Load the current skills: new JSON list first, then legacy defaults. */
 export function loadQuickPhrases(): QuickPhrase[] {
+  try {
+    const raw = String(getPref("chatSkills") || "").trim();
+    if (raw) return parseSkillsPayload(raw);
+  } catch {
+    // fall through to the legacy preference
+  }
   let custom: QuickPhrase[] = [];
   try {
     custom = parseQuickPhrases(String(getPref("chatQuickPhrases") || ""));
@@ -88,8 +155,4 @@ export function loadQuickPhrases(): QuickPhrase[] {
     if (result.length >= MAX_QUICK_PHRASES) break;
   }
   return result;
-}
-
-export function getDefaultTemplates(): QuickPhrase[] {
-  return DEFAULT_TEMPLATES.map((phrase) => ({ ...phrase }));
 }

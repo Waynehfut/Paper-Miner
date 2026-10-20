@@ -4,6 +4,7 @@ import {
   loadQuickPhrases,
   MAX_QUICK_PHRASES,
   parseQuickPhrases,
+  parseSkillsPayload,
 } from "../src/modules/chat/quickPhrases";
 import { setPref } from "../src/utils/prefs";
 
@@ -29,12 +30,66 @@ describe("chat quick phrases", function () {
     assert.equal(parsed[0].prompt, "问题 0");
   });
 
-  it("appends user templates after defaults", function () {
-    const backup = Zotero.Prefs.get(
+  it("parses JSON skill payloads and plain text imports", function () {
+    const json = parseSkillsPayload(
+      JSON.stringify({
+        skills: [
+          { name: "审稿人", instruction: "指出缺陷" },
+          { label: "复现", prompt: "列出步骤" },
+        ],
+      }),
+    );
+    assert.lengthOf(json, 2);
+    assert.equal(json[0].label, "审稿人");
+    assert.equal(json[0].prompt, "指出缺陷");
+    const text = parseSkillsPayload("一句话 | 只回答一句话");
+    assert.lengthOf(text, 1);
+    assert.equal(text[0].prompt, "只回答一句话");
+  });
+
+  it("prefers the editable chatSkills list over the legacy lines", function () {
+    const backupSkills = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSkills",
+      true,
+    );
+    const backupQuick = Zotero.Prefs.get(
       "extensions.zotero.paperminer.chatQuickPhrases",
       true,
     );
     try {
+      setPref(
+        "chatSkills",
+        JSON.stringify([{ label: "唯一技能", prompt: "唯一提示词" }]) as never,
+      );
+      setPref("chatQuickPhrases", "旧模板 | 旧提示词" as never);
+      const phrases = loadQuickPhrases();
+      assert.lengthOf(phrases, 1);
+      assert.equal(phrases[0].label, "唯一技能");
+    } finally {
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSkills",
+        backupSkills,
+        true,
+      );
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatQuickPhrases",
+        backupQuick,
+        true,
+      );
+    }
+  });
+
+  it("appends legacy user templates after defaults when chatSkills is empty", function () {
+    const backup = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatQuickPhrases",
+      true,
+    );
+    const backupSkills = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSkills",
+      true,
+    );
+    try {
+      setPref("chatSkills", "" as never);
       setPref("chatQuickPhrases", "我的模板 | 只回答一句话" as never);
       const phrases = loadQuickPhrases();
       assert.isAbove(phrases.length, getDefaultTemplates().length);
@@ -43,6 +98,11 @@ describe("chat quick phrases", function () {
       Zotero.Prefs.set(
         "extensions.zotero.paperminer.chatQuickPhrases",
         backup,
+        true,
+      );
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSkills",
+        backupSkills,
         true,
       );
     }

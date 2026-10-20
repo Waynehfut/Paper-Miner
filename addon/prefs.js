@@ -48,6 +48,7 @@ pref("chatPersist", true);
 pref("chatTemperature", "0.3");
 pref("chatSystemPrompt", "");
 pref("chatQuickPhrases", "");
+pref("chatSkills", "");
 
 /* Presentation */
 pref("pptSlides", 12);

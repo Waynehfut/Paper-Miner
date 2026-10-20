@@ -48,6 +48,7 @@ export const DEFAULT_PREFS: Record<string, string | number | boolean> = {
   chatTemperature: "0.3",
   chatSystemPrompt: "",
   chatQuickPhrases: "",
+  chatSkills: "",
 
   pptSlides: 12,
   pptPrompt: "",

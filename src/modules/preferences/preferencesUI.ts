@@ -1,6 +1,12 @@
 import { config } from "../../../package.json";
 import { getLLMConfig } from "../ai/config";
-import { getDefaultTemplates } from "../chat/quickPhrases";
+import {
+  getDefaultTemplates,
+  loadQuickPhrases,
+  parseSkillsPayload,
+  saveQuickPhrases,
+} from "../chat/quickPhrases";
+import type { QuickPhrase } from "../chat/quickPhrases";
 import { fetchAvailableModels, testLLMConnection } from "../ai/llm";
 import { LLM_PRESETS, getLLMPreset } from "../ai/presets";
 import { JOURNAL_FIELDS, DEFAULT_ENABLED_FIELDS } from "../journal/fields";
@@ -19,7 +25,13 @@ import {
   unregisterJournalSection,
 } from "../ui/journalSection";
 import { pluginCache } from "../../utils/cache";
-import { getDownloadsDir, getPluginDataDir, revealFile } from "../../utils/fs";
+import {
+  getDownloadsDir,
+  getGlobal,
+  getPluginDataDir,
+  joinPath,
+  revealFile,
+} from "../../utils/fs";
 import { t } from "../../utils/i18n";
 import { log } from "../../utils/log";
 import { getPref, setPref } from "../../utils/prefs";
@@ -230,32 +242,210 @@ function populatePresets(win: Window): void {
   }
 }
 
-function renderTemplatePresets(win: Window): void {
-  const container = byId(win, "pm-chat-template-presets");
+function renderSkillTable(win: Window): void {
+  const container = byId<HTMLElement>(win, "pm-chat-skill-table");
   if (!container) return;
-  while (container.firstChild) container.removeChild(container.firstChild);
-  for (const template of getDefaultTemplates()) {
-    const row = win.document.createElementNS(
+  const doc = win.document;
+  let skills: QuickPhrase[] = loadQuickPhrases();
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const validSkills = () =>
+    skills
+      .map((skill) => ({
+        label: String(skill.label || "").trim() || "未命名技能",
+        prompt: String(skill.prompt || "").trim(),
+      }))
+      .filter((skill) => skill.prompt);
+
+  const persist = (immediate = false) => {
+    if (saveTimer) clearTimeout(saveTimer);
+    const save = () => {
+      saveQuickPhrases(skills);
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t("chat-skills-saved", "已保存技能", {
+          count: validSkills().length,
+        }),
+        true,
+      );
+    };
+    if (immediate) save();
+    else saveTimer = setTimeout(save, 300);
+  };
+
+  const make = <K extends keyof HTMLElementTagNameMap>(tag: K) =>
+    doc.createElementNS(
       "http://www.w3.org/1999/xhtml",
-      "div",
-    ) as HTMLDivElement;
-    row.className = "pm-pref-template";
-    const name = win.document.createElementNS(
-      "http://www.w3.org/1999/xhtml",
-      "span",
-    ) as HTMLSpanElement;
-    name.className = "pm-pref-template-name";
-    name.textContent = template.label;
-    const prompt = win.document.createElementNS(
-      "http://www.w3.org/1999/xhtml",
-      "span",
-    ) as HTMLSpanElement;
-    prompt.className = "pm-pref-template-prompt";
-    prompt.textContent = template.prompt;
-    prompt.title = template.prompt;
-    row.append(name, prompt);
-    container.appendChild(row);
-  }
+      tag,
+    ) as HTMLElementTagNameMap[K];
+
+  const draw = () => {
+    while (container.firstChild) container.removeChild(container.firstChild);
+    const head = make("div");
+    head.className = "pm-skill-head";
+    for (const label of [
+      t("chat-skill-name", "技能名称"),
+      t("chat-skill-prompt", "指令提示词"),
+      t("chat-skill-actions", "操作"),
+    ]) {
+      const cell = make("span");
+      cell.textContent = label;
+      head.appendChild(cell);
+    }
+    container.appendChild(head);
+
+    skills.forEach((skill, index) => {
+      const row = make("div");
+      row.className = "pm-skill-row";
+      const name = make("input");
+      name.className = "pm-skill-name";
+      name.type = "text";
+      name.value = skill.label;
+      name.placeholder = t("chat-skill-name-placeholder", "例如：审稿人视角");
+      const prompt = make("textarea");
+      prompt.className = "pm-skill-prompt";
+      prompt.rows = 2;
+      prompt.value = skill.prompt;
+      prompt.placeholder = t(
+        "chat-skill-prompt-placeholder",
+        "例如：请从审稿人角度指出论文的主要缺陷，并给出修改建议。",
+      );
+      const remove = make("button");
+      remove.className = "pm-skill-remove";
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.title = t("chat-skill-remove", "删除这个技能");
+      remove.setAttribute("aria-label", remove.title);
+
+      name.addEventListener("input", () => {
+        skills[index] = { ...skills[index], label: name.value };
+        persist();
+      });
+      prompt.addEventListener("input", () => {
+        skills[index] = { ...skills[index], prompt: prompt.value };
+        persist();
+      });
+      remove.addEventListener("click", () => {
+        skills.splice(index, 1);
+        draw();
+        persist(true);
+      });
+      row.append(name, prompt, remove);
+      container.appendChild(row);
+    });
+
+    if (!skills.length) {
+      const empty = make("div");
+      empty.className = "pm-skill-empty";
+      empty.textContent = t(
+        "chat-skills-empty",
+        "还没有技能。点击「新增技能」创建，或从 JSON/TXT 文件导入。",
+      );
+      container.appendChild(empty);
+    }
+  };
+
+  const addButton = byId<HTMLButtonElement>(win, "pm-chat-skill-add");
+  addButton?.addEventListener("command", () => {
+    skills.push({ label: t("chat-skill-new", "新技能"), prompt: "" });
+    draw();
+    const rows = container.querySelectorAll(".pm-skill-prompt");
+    (rows[rows.length - 1] as HTMLTextAreaElement | undefined)?.focus();
+  });
+
+  const resetButton = byId<HTMLButtonElement>(win, "pm-chat-skill-reset");
+  resetButton?.addEventListener("command", () => {
+    if (
+      typeof win.confirm === "function" &&
+      !win.confirm(
+        t(
+          "chat-skills-reset-confirm",
+          "恢复为内置技能？当前自定义内容会被覆盖。",
+        ),
+      )
+    ) {
+      return;
+    }
+    skills = getDefaultTemplates();
+    draw();
+    persist(true);
+  });
+
+  const fileInput = byId<HTMLInputElement>(win, "pm-chat-skill-file");
+  const importButton = byId<HTMLButtonElement>(win, "pm-chat-skill-import");
+  importButton?.addEventListener("command", () => fileInput?.click());
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    try {
+      const imported = parseSkillsPayload(await file.text());
+      if (!imported.length) {
+        setStatus(
+          win,
+          "pm-chat-skill-status",
+          t("chat-skills-import-empty", "没有识别到可导入的技能"),
+          false,
+        );
+        return;
+      }
+      const existing = new Set(skills.map((skill) => skill.prompt.trim()));
+      let added = 0;
+      for (const skill of imported) {
+        if (existing.has(skill.prompt.trim())) continue;
+        existing.add(skill.prompt.trim());
+        skills.push(skill);
+        added += 1;
+      }
+      draw();
+      persist(true);
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t("chat-skills-imported", "已导入技能", { count: added }),
+        true,
+      );
+    } catch (error) {
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t("chat-skills-import-failed", "导入失败", {
+          error: String((error as Error)?.message || error),
+        }),
+        false,
+      );
+    } finally {
+      fileInput.value = "";
+    }
+  });
+
+  const exportButton = byId<HTMLButtonElement>(win, "pm-chat-skill-export");
+  exportButton?.addEventListener("command", async () => {
+    try {
+      const io = getGlobal().IOUtils;
+      if (!io) throw new Error("IOUtils unavailable");
+      const path = joinPath(getDownloadsDir(), "paperminer-skills.json");
+      const exportable = validSkills();
+      await io.writeUTF8(path, JSON.stringify(exportable, null, 2));
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t("chat-skills-exported", "已导出技能", { path }),
+        true,
+      );
+    } catch (error) {
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t("chat-skills-export-failed", "导出失败", {
+          error: String((error as Error)?.message || error),
+        }),
+        false,
+      );
+    }
+  });
+
+  draw();
 }
 
 function populateJournalFields(win: Window): void {
@@ -424,22 +614,6 @@ async function bindActions(win: Window): Promise<void> {
     });
   }
 
-  const addTemplateButton = byId<HTMLButtonElement>(
-    win,
-    "pm-chat-add-template",
-  );
-  if (addTemplateButton) {
-    addTemplateButton.addEventListener("command", () => {
-      const textarea = byId<HTMLTextAreaElement>(win, "pm-chat-quick-phrases");
-      if (!textarea) return;
-      const prefix = textarea.value.trim() ? "\n" : "";
-      textarea.value = `${textarea.value}${prefix}新模板 | `;
-      textarea.focus();
-      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-      setPref("chatQuickPhrases", textarea.value as never);
-    });
-  }
-
   const toggleKey = byId<HTMLButtonElement>(win, "pm-toggle-apikey");
   if (toggleKey) {
     toggleKey.addEventListener("command", () => {
@@ -562,7 +736,7 @@ export async function initPreferencesUI(
 
   populatePresets(win);
   populateJournalFields(win);
-  renderTemplatePresets(win);
+  renderSkillTable(win);
 
   bindCheckbox(win, "pm-llm-stream", "llmStream");
   bindCheckbox(win, "pm-llm-disable-thinking", "llmDisableThinking");
@@ -599,7 +773,6 @@ export async function initPreferencesUI(
   bindNumber(win, "pm-chat-temp", "chatTemperature", false);
   bindCheckbox(win, "pm-chat-persist", "chatPersist");
   bindTextarea(win, "pm-chat-system-prompt", "chatSystemPrompt");
-  bindTextarea(win, "pm-chat-quick-phrases", "chatQuickPhrases");
 
   bindNumber(win, "pm-ppt-slides", "pptSlides");
   bindTextarea(win, "pm-ppt-prompt", "pptPrompt");

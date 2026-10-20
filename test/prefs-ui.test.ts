@@ -34,9 +34,11 @@ describe("PaperMiner preferences UI", function () {
       doc.getElementById("pm-chat-system-prompt"),
       "custom system prompt textarea exists",
     );
-    assert.ok(
-      doc.getElementById("pm-chat-quick-phrases"),
-      "quick phrase textarea exists",
+    assert.ok(doc.getElementById("pm-chat-skill-table"), "skills table exists");
+    assert.isAbove(
+      doc.querySelectorAll("#pm-chat-skill-table .pm-skill-row").length,
+      0,
+      "built-in skills should be rendered",
     );
     assert.ok(
       doc.getElementById("pm-tr-tencent-key"),
@@ -192,7 +194,7 @@ describe("PaperMiner preferences interactions", function () {
 describe("PaperMiner template and numeric controls", function () {
   this.timeout(30000);
 
-  it("lists built-in templates and validates numeric input", async function () {
+  it("edits the skills table and validates numeric input", async function () {
     const win = Zotero.Utilities.Internal.openPreferences(
       "paperminer-preference-pane",
     ) as Window | null;
@@ -203,24 +205,73 @@ describe("PaperMiner template and numeric controls", function () {
       "extensions.zotero.paperminer.chatQuickPhrases",
       true,
     );
+    const backupSkills = Zotero.Prefs.get(
+      "extensions.zotero.paperminer.chatSkills",
+      true,
+    );
     const backupTemp = Zotero.Prefs.get(
       "extensions.zotero.paperminer.llmTemperature",
       true,
     );
     try {
+      const rows = () =>
+        doc.querySelectorAll("#pm-chat-skill-table .pm-skill-row");
+      assert.isAtLeast(rows().length, 6, "built-in skills should be listed");
+      const firstRow = rows()[0] as HTMLElement;
       assert.isAtLeast(
-        doc.querySelectorAll("#pm-chat-template-presets .pm-pref-template")
-          .length,
-        6,
-        "built-in templates should be listed",
+        firstRow.getBoundingClientRect().width,
+        400,
+        "skills table row should span the pane",
       );
-      const addButton = doc.getElementById("pm-chat-add-template") as any;
-      const textarea = doc.getElementById(
-        "pm-chat-quick-phrases",
-      ) as HTMLTextAreaElement;
-      assert.ok(addButton && textarea, "add-template controls exist");
+      assert.isAtLeast(
+        (
+          firstRow.querySelector(".pm-skill-prompt") as HTMLTextAreaElement
+        ).getBoundingClientRect().width,
+        180,
+        "skill prompt column should be readable",
+      );
+      const addButton = doc.getElementById("pm-chat-skill-add") as any;
+      assert.ok(addButton, "add-skill button exists");
+      const before = rows().length;
       addButton.dispatchEvent(new win!.Event("command", { bubbles: true }));
-      assert.include(textarea.value, "新模板 |");
+      await Zotero.Promise.delay(100);
+      assert.equal(rows().length, before + 1, "add button should append a row");
+
+      const last = rows()[rows().length - 1];
+      const name = last.querySelector(".pm-skill-name") as HTMLInputElement;
+      const prompt = last.querySelector(
+        ".pm-skill-prompt",
+      ) as HTMLTextAreaElement;
+      name.value = "测试技能";
+      name.dispatchEvent(new win!.Event("input", { bubbles: true }));
+      prompt.value = "请只回答测试内容。";
+      prompt.dispatchEvent(new win!.Event("input", { bubbles: true }));
+      await Zotero.Promise.delay(500);
+      const saved = String(
+        Zotero.Prefs.get("extensions.zotero.paperminer.chatSkills", true),
+      );
+      assert.include(saved, "测试技能");
+      assert.include(saved, "请只回答测试内容");
+
+      (last.querySelector(".pm-skill-remove") as HTMLButtonElement).click();
+      await Zotero.Promise.delay(100);
+      assert.equal(rows().length, before, "remove button should delete a row");
+
+      for (const id of [
+        "pm-journal-cachedays",
+        "pm-ret-cachedays",
+        "pm-chat-history",
+        "pm-chat-temp",
+        "pm-llm-temperature",
+      ]) {
+        const input = doc.getElementById(id) as HTMLInputElement;
+        assert.ok(input, `${id} should exist`);
+        assert.isAtLeast(
+          input.getBoundingClientRect().width,
+          60,
+          `${id} should not be squeezed by flex layout`,
+        );
+      }
 
       const temp = doc.getElementById("pm-llm-temperature") as HTMLInputElement;
       temp.value = "abc";
@@ -237,6 +288,11 @@ describe("PaperMiner template and numeric controls", function () {
       Zotero.Prefs.set(
         "extensions.zotero.paperminer.chatQuickPhrases",
         backupQuick,
+        true,
+      );
+      Zotero.Prefs.set(
+        "extensions.zotero.paperminer.chatSkills",
+        backupSkills,
         true,
       );
       Zotero.Prefs.set(

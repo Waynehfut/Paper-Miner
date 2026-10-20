@@ -43,6 +43,7 @@ declare namespace _ZoteroTypes {
       "chatTemperature": string;
       "chatSystemPrompt": string;
       "chatQuickPhrases": string;
+      "chatSkills": string;
       "pptSlides": number;
       "pptPrompt": string;
       "pptLanguage": string;
