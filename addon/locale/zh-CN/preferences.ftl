@@ -138,3 +138,4 @@ paperminer-pref-unit-range-temp = （0–2）
 paperminer-pref-unit-tokens = token
 paperminer-pref-unit-chars = 字符
 paperminer-pref-unit-messages = 条
+paperminer-pref-unit-days = 天

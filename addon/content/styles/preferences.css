@@ -36,7 +36,12 @@
 }
 
 #paperminer-prefpane .pm-pref-number {
+  flex: 0 0 86px;
   width: 86px;
+  min-width: 86px;
+  max-width: 86px;
+  box-sizing: border-box;
+  height: 26px;
 }
 
 #paperminer-prefpane .pm-pref-textarea {

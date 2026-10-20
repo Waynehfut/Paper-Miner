@@ -253,6 +253,7 @@ export type FluentMessageId =
   | 'paperminer-pref-translate-target'
   | 'paperminer-pref-translate-title'
   | 'paperminer-pref-unit-chars'
+  | 'paperminer-pref-unit-days'
   | 'paperminer-pref-unit-messages'
   | 'paperminer-pref-unit-range-temp'
   | 'paperminer-pref-unit-tokens'

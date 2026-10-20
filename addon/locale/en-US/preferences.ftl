@@ -138,3 +138,4 @@ paperminer-pref-unit-range-temp = (0–2)
 paperminer-pref-unit-tokens = tokens
 paperminer-pref-unit-chars = chars
 paperminer-pref-unit-messages = msgs
+paperminer-pref-unit-days = days

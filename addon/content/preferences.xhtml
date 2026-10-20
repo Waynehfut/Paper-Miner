@@ -231,8 +231,15 @@
           type="number"
           min="1"
           max="365"
+          step="1"
+          inputmode="numeric"
         ></html:input>
-        <spacer flex="1"></spacer>
+        <label
+          class="pm-pref-unit"
+          data-l10n-id="paperminer-pref-unit-days"
+        ></label>
+      </hbox>
+      <hbox align="center">
         <checkbox
           id="pm-journal-showsection"
           data-l10n-id="paperminer-pref-journal-showsection"
@@ -245,6 +252,7 @@
           id="pm-journal-showbanner"
           data-l10n-id="paperminer-pref-journal-showbanner"
         ></checkbox>
+        <spacer flex="1"></spacer>
         <button
           id="pm-journal-clear"
           data-l10n-id="paperminer-pref-clear-cache"
@@ -292,12 +300,20 @@
           type="number"
           min="1"
           max="365"
+          step="1"
+          inputmode="numeric"
         ></html:input>
-        <spacer flex="1"></spacer>
+        <label
+          class="pm-pref-unit"
+          data-l10n-id="paperminer-pref-unit-days"
+        ></label>
+      </hbox>
+      <hbox align="center">
         <checkbox
           id="pm-ret-banner"
           data-l10n-id="paperminer-pref-retraction-banner"
         ></checkbox>
+        <spacer flex="1"></spacer>
         <button
           id="pm-retraction-clear"
           data-l10n-id="paperminer-pref-clear-cache"
@@ -425,11 +441,13 @@
           step="0.1"
           inputmode="decimal"
         ></html:input>
-        <spacer flex="1"></spacer>
+      </hbox>
+      <hbox align="center">
         <checkbox
           id="pm-chat-persist"
           data-l10n-id="paperminer-pref-chat-persist"
         ></checkbox>
+        <spacer flex="1"></spacer>
         <button
           id="pm-chat-clear"
           data-l10n-id="paperminer-pref-chat-clear"
