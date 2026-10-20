@@ -559,6 +559,14 @@
               data-l10n-id="paperminer-pref-translate-engine-tencent"
               value="tencent"
             ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-translate-engine-bing"
+              value="bing"
+            ></menuitem>
+            <menuitem
+              data-l10n-id="paperminer-pref-translate-engine-mymemory"
+              value="mymemory"
+            ></menuitem>
           </menupopup>
         </menulist>
         <label
@@ -673,6 +681,39 @@
             class="pm-pref-input"
             type="password"
             flex="1"
+          ></html:input>
+        </hbox>
+      </vbox>
+
+      <vbox id="pm-tr-bing" class="pm-pref-engine pm-pref-engine-card">
+        <label
+          class="pm-pref-engine-title"
+          data-l10n-id="paperminer-pref-translate-bing-title"
+        ></label>
+        <description
+          data-l10n-id="paperminer-pref-translate-bing-desc"
+        ></description>
+      </vbox>
+
+      <vbox id="pm-tr-mymemory" class="pm-pref-engine pm-pref-engine-card">
+        <label
+          class="pm-pref-engine-title"
+          data-l10n-id="paperminer-pref-translate-mymemory-title"
+        ></label>
+        <description
+          data-l10n-id="paperminer-pref-translate-mymemory-desc"
+        ></description>
+        <hbox align="center">
+          <label
+            data-l10n-id="paperminer-pref-translate-mymemory-email"
+            control="pm-tr-mymemory-email"
+          ></label>
+          <html:input
+            id="pm-tr-mymemory-email"
+            class="pm-pref-input"
+            type="email"
+            flex="1"
+            placeholder="name@example.com"
           ></html:input>
         </hbox>
       </vbox>

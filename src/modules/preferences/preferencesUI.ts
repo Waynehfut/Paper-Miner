@@ -559,6 +559,8 @@ function updateTranslateEngineVisibility(win: Window): void {
   byId(win, "pm-tr-deepl")?.toggleAttribute("hidden", engine !== "deepl");
   byId(win, "pm-tr-youdao")?.toggleAttribute("hidden", engine !== "youdao");
   byId(win, "pm-tr-tencent")?.toggleAttribute("hidden", engine !== "tencent");
+  byId(win, "pm-tr-bing")?.toggleAttribute("hidden", engine !== "bing");
+  byId(win, "pm-tr-mymemory")?.toggleAttribute("hidden", engine !== "mymemory");
 }
 
 function applyViewPreferences(): void {
@@ -863,6 +865,7 @@ export async function initPreferencesUI(
   bindText(win, "pm-tr-tencent-key", "translateTencentSecretId");
   bindText(win, "pm-tr-tencent-secret", "translateTencentSecretKey");
   bindText(win, "pm-tr-tencent-region", "translateTencentRegion");
+  bindText(win, "pm-tr-mymemory-email", "translateMyMemoryEmail");
 
   updateTranslateEngineVisibility(win);
   updateThinkingCapability(win);

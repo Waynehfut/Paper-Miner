@@ -25,7 +25,13 @@ export interface TranslateOptions {
   targetLang?: string;
 }
 
-export type TranslateEngine = "llm" | "deepl" | "youdao" | "tencent";
+export type TranslateEngine =
+  | "llm"
+  | "deepl"
+  | "youdao"
+  | "tencent"
+  | "bing"
+  | "mymemory";
 
 const DEFAULT_DEEPL_ENDPOINT = "https://api-free.deepl.com/v2/translate";
 const YOUDAO_ENDPOINT = "https://openapi.youdao.com/api";
@@ -66,6 +72,10 @@ export async function translateText(
         return await translateWithYoudao(source, target, options);
       case "tencent":
         return await translateWithTencent(source, target, options);
+      case "bing":
+        return await translateWithBing(source, target, options);
+      case "mymemory":
+        return await translateWithMyMemory(source, target, options);
       default:
         return await translateWithLLM(source, target, options);
     }
@@ -104,6 +114,8 @@ export function getTranslateEngine(): TranslateEngine {
     raw === "deepl" ||
     raw === "youdao" ||
     raw === "tencent" ||
+    raw === "bing" ||
+    raw === "mymemory" ||
     raw === "llm"
   ) {
     return raw;
@@ -135,6 +147,9 @@ export function isTranslationConfigured(): boolean {
         String(getPref("translateTencentSecretId") || "").trim() &&
         String(getPref("translateTencentSecretKey") || "").trim(),
       );
+    }
+    if (engine === "bing" || engine === "mymemory") {
+      return true;
     }
     return isLLMConfigured("translation");
   } catch (error) {
@@ -218,6 +233,164 @@ async function readJsonBody(response: Response, service: string): Promise<any> {
   } catch {
     throw new LLMError("parse", `${service}返回了无法解析的内容`);
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Free web translation endpoints (Bing / MyMemory)                    */
+/* ------------------------------------------------------------------ */
+
+/** Bing's Edge endpoint uses BCP-47 tags; Chinese needs script variants. */
+export function mapBingTarget(target: string): string {
+  const code = String(target || "")
+    .trim()
+    .toLowerCase();
+  if (
+    code === "zh" ||
+    code === "zh-cn" ||
+    code === "zh-hans" ||
+    code === "zh-chs"
+  ) {
+    return "zh-Hans";
+  }
+  if (code === "zh-tw" || code === "zh-hant" || code === "zh-cht") {
+    return "zh-Hant";
+  }
+  return code.split("-")[0] || "en";
+}
+
+export function mapMyMemoryTarget(target: string): string {
+  const code = String(target || "")
+    .trim()
+    .toLowerCase();
+  if (
+    code === "zh" ||
+    code === "zh-cn" ||
+    code === "zh-hans" ||
+    code === "zh-chs"
+  ) {
+    return "zh-CN";
+  }
+  if (code === "zh-tw" || code === "zh-hant" || code === "zh-cht") {
+    return "zh-TW";
+  }
+  return code || "en";
+}
+
+function freeTranslateSource(text: string): string {
+  return detectTextLanguage(text) === "zh" ? "zh-Hans" : "en";
+}
+
+function freeTranslateError(
+  service: string,
+  status: number,
+  detail: string,
+): LLMError {
+  if (status === 429) {
+    return new LLMError(
+      "rate",
+      `${service}请求过于频繁，请稍后再试（HTTP 429）`,
+    );
+  }
+  if (status === 403) {
+    return new LLMError(
+      "auth",
+      `${service}拒绝了请求（HTTP 403）${detail ? `：${detail.slice(0, 200)}` : ""}`,
+    );
+  }
+  if (status >= 500) {
+    return new LLMError("server", `${service}服务暂时不可用（HTTP ${status}）`);
+  }
+  return new LLMError(
+    "server",
+    `${service}翻译失败（HTTP ${status}）${detail ? `：${detail.slice(0, 200)}` : ""}`,
+  );
+}
+
+async function translateWithBing(
+  text: string,
+  target: string,
+  options: TranslateOptions,
+): Promise<string> {
+  const chunks = splitText(text, 1000);
+  const outputs: string[] = [];
+  const from = freeTranslateSource(text);
+  const to = mapBingTarget(target);
+  for (const chunk of chunks) {
+    throwIfAborted(options.signal);
+    const url = `https://edge.microsoft.com/translate/translatetext?${new URLSearchParams(
+      { from, to, isEnterpriseClient: "false" },
+    ).toString()}`;
+    const response = await fetchTranslation(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42",
+        },
+        body: JSON.stringify([chunk]),
+      },
+      options.signal,
+      "Bing 翻译",
+    );
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      throw freeTranslateError("Bing 翻译", response.status, detail);
+    }
+    const json = await readJsonBody(response, "Bing 翻译");
+    const translated = String(json?.[0]?.translations?.[0]?.text || "").trim();
+    if (!translated) {
+      throw new LLMError("parse", "Bing 翻译没有返回译文");
+    }
+    outputs.push(translated);
+    options.onDelta?.(translated, outputs.join("\n"));
+  }
+  return outputs.join("\n");
+}
+
+async function translateWithMyMemory(
+  text: string,
+  target: string,
+  options: TranslateOptions,
+): Promise<string> {
+  const chunks = splitText(text, 450);
+  const outputs: string[] = [];
+  const from = freeTranslateSource(text);
+  const to = mapMyMemoryTarget(target);
+  const email = String(getPref("translateMyMemoryEmail") || "").trim();
+  for (const chunk of chunks) {
+    throwIfAborted(options.signal);
+    const params = new URLSearchParams({
+      q: chunk,
+      langpair: `${from}|${to}`,
+    });
+    if (email) params.set("de", email);
+    const response = await fetchTranslation(
+      `https://api.mymemory.translated.net/get?${params.toString()}`,
+      { method: "GET" },
+      options.signal,
+      "MyMemory 翻译",
+    );
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      throw freeTranslateError("MyMemory 翻译", response.status, detail);
+    }
+    const json = await readJsonBody(response, "MyMemory 翻译");
+    if (Number(json?.responseStatus) !== 200) {
+      throw new LLMError(
+        "server",
+        `MyMemory 翻译失败：${String(json?.responseDetails || json?.responseStatus || "")}`,
+      );
+    }
+    const translated = String(json?.responseData?.translatedText || "").trim();
+    if (!translated) {
+      throw new LLMError("parse", "MyMemory 翻译没有返回译文");
+    }
+    outputs.push(translated);
+    options.onDelta?.(translated, outputs.join("\n"));
+  }
+  return outputs.join("\n");
 }
 
 /* ------------------------------------------------------------------ */

@@ -61,3 +61,4 @@ pref("translatePrompt", "");
 pref("translateTencentSecretId", "");
 pref("translateTencentSecretKey", "");
 pref("translateTencentRegion", "ap-guangzhou");
+pref("translateMyMemoryEmail", "");
