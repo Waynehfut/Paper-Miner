@@ -15,7 +15,8 @@
   white-space: pre-wrap;
 }
 
-#paperminer-prefpane hbox {
+#paperminer-prefpane groupbox > hbox,
+#paperminer-prefpane vbox > hbox {
   gap: 8px;
   margin-bottom: 6px;
 }
@@ -277,4 +278,20 @@
 
 #paperminer-prefpane button:not(.pm-skill-remove) {
   min-height: 25px;
+}
+
+/* The native XUL button contains an internal hbox/label. Reset spacing so
+   inherited row rules cannot push the label off-centre. */
+#paperminer-prefpane button:not(.pm-skill-remove) > .button-box {
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+#paperminer-prefpane button:not(.pm-skill-remove) .button-text {
+  margin: 0;
+  padding: 0;
+  line-height: normal;
 }

@@ -329,6 +329,30 @@ describe("PaperMiner template and numeric controls", function () {
         );
       }
 
+      for (const id of [
+        "pm-toggle-apikey",
+        "pm-llm-test",
+        "pm-ppt-pick-dir",
+        "pm-chat-skill-add",
+      ]) {
+        const button = doc.getElementById(id) as HTMLElement;
+        const text = button?.querySelector(
+          ".button-text",
+        ) as HTMLElement | null;
+        assert.ok(button && text, `${id} should expose a button label`);
+        const buttonRect = button.getBoundingClientRect();
+        const textRect = text.getBoundingClientRect();
+        assert.isAtMost(
+          Math.abs(
+            buttonRect.top +
+              buttonRect.height / 2 -
+              (textRect.top + textRect.height / 2),
+          ),
+          2,
+          `${id} label should be vertically centered`,
+        );
+      }
+
       const dirInput = doc.getElementById("pm-ppt-dir") as HTMLInputElement;
       const dirButton = doc.getElementById(
         "pm-ppt-pick-dir",
