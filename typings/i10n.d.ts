@@ -181,6 +181,7 @@ export type FluentMessageId =
   | 'paperminer-pref-field-xr'
   | 'paperminer-pref-field-xrWarn'
   | 'paperminer-pref-homepage'
+  | 'paperminer-pref-issues'
   | 'paperminer-pref-journal-cachedays'
   | 'paperminer-pref-journal-desc'
   | 'paperminer-pref-journal-enabled'

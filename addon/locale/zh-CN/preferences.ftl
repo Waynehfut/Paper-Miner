@@ -93,6 +93,7 @@ paperminer-pref-reset =
     .label = 恢复默认设置
 paperminer-pref-reset-confirm = 确定恢复 PaperMiner 的所有默认设置？API Key 等配置会被清空。
 paperminer-pref-homepage = 项目主页
+paperminer-pref-issues = 反馈问题
 paperminer-pref-clear-cache =
     .label = 清除缓存
 paperminer-pref-ppt-pick = 选择 PPT 输出目录

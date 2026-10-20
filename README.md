@@ -3,6 +3,8 @@
 [![CI](https://github.com/Waynehfut/Paper-Miner/actions/workflows/ci.yml/badge.svg)](https://github.com/Waynehfut/Paper-Miner/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
+**GitHub：[Waynehfut/Paper-Miner](https://github.com/Waynehfut/Paper-Miner) · [问题反馈](https://github.com/Waynehfut/Paper-Miner/issues)**
+
 PaperMiner 是一个面向科研工作者的 Zotero 文献阅读助手：在 Zotero 原生界面里直接查看**期刊分区/预警**、检测**论文撤稿**，并对选中的论文进行 **AI 阅读对话、AI 摘要、PPT 生成、划词翻译**。
 
 - 无需注册 / 登录 PaperMiner 账号；所有功能由用户自己的 API Key 驱动。
@@ -31,7 +33,7 @@ PaperMiner 是一个面向科研工作者的 Zotero 文献阅读助手：在 Zot
 
 ### 方式一：安装已构建的 XPI
 
-1. 直接使用本仓库已构建的 `dist/paper-miner.xpi`（或从 Releases 下载）。
+1. 直接使用本仓库已构建的 [`dist/paper-miner.xpi`](https://github.com/Waynehfut/Paper-Miner/blob/main/dist/paper-miner.xpi)（或从 [Releases](https://github.com/Waynehfut/Paper-Miner/releases) 下载）。
 2. Zotero →「工具」→「插件」→ 右上角齿轮 →「Install Add-on From File…」，选择 XPI。
 3. 重启 Zotero。
 

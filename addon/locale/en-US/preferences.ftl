@@ -93,6 +93,7 @@ paperminer-pref-reset =
     .label = Restore defaults
 paperminer-pref-reset-confirm = Restore all PaperMiner defaults? API keys and other settings will be cleared.
 paperminer-pref-homepage = Project homepage
+paperminer-pref-issues = Report an issue
 paperminer-pref-clear-cache =
     .label = Clear cache
 paperminer-pref-ppt-pick = Choose slide output directory
