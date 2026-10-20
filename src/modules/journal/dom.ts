@@ -86,7 +86,7 @@ export function pluginIconImg(
     class: className,
     attrs: { "aria-hidden": "true" },
   });
-  icon.style.backgroundImage = `url("chrome://paperminer/content/icons/${name}.png")`;
+  icon.style.backgroundImage = `url("chrome://paperminer/content/icons/${name}.svg")`;
   return icon;
 }
 

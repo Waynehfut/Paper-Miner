@@ -29,9 +29,9 @@ describe("PaperMiner startup", function () {
       ours,
       `sections=${JSON.stringify(sections.map((section) => section.paneID))}`,
     );
-    // The item pane uses PaperMiner's own 16/20 px brand icons.
-    assert.include(String(ours.header.icon), "content/icons/header-16.png");
-    assert.include(String(ours.sidenav.icon), "content/icons/sidenav-20.png");
+    // The item pane uses PaperMiner's vector brand icon.
+    assert.include(String(ours.header.icon), "content/icons/paperminer.svg");
+    assert.include(String(ours.sidenav.icon), "content/icons/paperminer.svg");
   });
 
   it("registers the item tree column", function () {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Paper Miner</title>
+  <desc id="desc">A coral outline icon of a pickaxe striking a folded-corner document. Square canvas with a transparent background.</desc>
+  <g stroke="#F77963" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Document outline, interrupted where the pickaxe passes in front. -->
+    <path id="document" d="M27.5 17.8V13A1.5 1.5 0 0 1 29 11.5H46.5L57 23.5V51A1.5 1.5 0 0 1 55.5 52.5H29A1.5 1.5 0 0 1 27.5 51V36.5"/>
+    <path id="fold" d="M46.5 11.5V22A1.5 1.5 0 0 0 48 23.5H57"/>
+    <!-- Pickaxe: long diagonal handle and curved, pointed head. -->
+    <path id="pickaxe-handle" d="M23.1 28.3L7.6 45.5Q6.7 46.5 7.7 47.4L9 48.6Q10 49.5 11 48.5L28.4 29.7"/>
+    <path id="pickaxe-head" d="M14.5 19C19 18.4 24.7 20.5 28.4 23L29.5 21.9L32.3 24.6L31.3 25.8C35 29.6 37.6 34.5 38.3 39C34.9 35.2 31.4 31.8 28.4 29.6L26.6 31.6L22.8 28.2L24.5 26.2C20.7 23.2 17.5 21.1 14.5 19Z"/>
+    <!-- Impact rays. -->
+    <path id="impact" d="M42.5 29.8L40.2 34M43 38.5H48M41.5 43L44.7 46.5"/>
+  </g>
+</svg>

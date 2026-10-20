@@ -10,7 +10,7 @@ export function registerPreferencesPane(): void {
       id: "paperminer-preference-pane",
       src: `${rootURI}content/preferences.xhtml`,
       label: t("prefs-title", "PaperMiner 设置"),
-      image: `chrome://${config.addonRef}/content/icons/paperminer-192.png`,
+      image: `chrome://${config.addonRef}/content/icons/paperminer.svg`,
       stylesheets: [
         `${rootURI}content/styles/base.css`,
         `${rootURI}content/styles/preferences.css`,
