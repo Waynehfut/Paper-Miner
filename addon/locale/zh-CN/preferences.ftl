@@ -32,20 +32,6 @@ paperminer-pref-journal-showcolumn =
 paperminer-pref-journal-showbanner =
     .label = 阅读器横幅
 
-paperminer-pref-retraction-title = 撤稿检测
-paperminer-pref-retraction-desc = 优先使用 Zotero 内置的 Retraction Watch 数据，并用 OpenAlex / Crossref 公共接口补充检测。无需任何密钥。
-paperminer-pref-retraction-enabled =
-    .label = 启用撤稿检测
-paperminer-pref-retraction-zotero =
-    .label = Zotero 内置数据
-paperminer-pref-retraction-openalex =
-    .label = OpenAlex
-paperminer-pref-retraction-crossref =
-    .label = Crossref
-paperminer-pref-retraction-cachedays = 缓存天数
-paperminer-pref-retraction-banner =
-    .label = 阅读器横幅
-
 paperminer-pref-summary-title = AI 阅读摘要
 paperminer-pref-summary-auto =
     .label = 打开 PDF 时自动生成

@@ -263,7 +263,6 @@ describe("PaperMiner template and numeric controls", function () {
 
       for (const id of [
         "pm-journal-cachedays",
-        "pm-ret-cachedays",
         "pm-chat-history",
         "pm-chat-temp",
         "pm-llm-temperature",

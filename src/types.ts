@@ -66,35 +66,6 @@ export interface JournalResult {
 }
 
 /* ------------------------------------------------------------------ */
-/* Retraction                                                          */
-/* ------------------------------------------------------------------ */
-
-export type RetractionStatus =
-  | "idle"
-  | "loading"
-  | "retracted"
-  | "clear"
-  | "no-doi"
-  | "unknown"
-  | "error";
-
-export interface RetractionResult {
-  status: RetractionStatus;
-  /** Data sources that produced this answer, e.g. ["zotero", "openalex"]. */
-  sources: string[];
-  retracted: boolean;
-  doi?: string;
-  date?: string;
-  reason?: string;
-  /** DOI of the retraction notice, when known. */
-  noticeDOI?: string;
-  /** Human-readable details from Zotero / OpenAlex / Crossref. */
-  details?: string;
-  error?: string;
-  checkedAt: number;
-}
-
-/* ------------------------------------------------------------------ */
 /* AI                                                                  */
 /* ------------------------------------------------------------------ */
 

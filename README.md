@@ -5,7 +5,7 @@
 
 **GitHub：[Waynehfut/Paper-Miner](https://github.com/Waynehfut/Paper-Miner) · [问题反馈](https://github.com/Waynehfut/Paper-Miner/issues)**
 
-PaperMiner 是一个面向科研工作者的 Zotero 文献阅读助手：在 Zotero 原生界面里直接查看**期刊分区/预警**、检测**论文撤稿**，并对选中的论文进行 **AI 阅读对话、AI 摘要、PPT 生成、划词翻译**。
+PaperMiner 是一个面向科研工作者的 Zotero 文献阅读助手：在 Zotero 原生界面里直接查看**期刊分区/预警**，并对选中的论文进行 **AI 阅读对话、AI 摘要、PPT 生成、划词翻译**。
 
 - 无需注册 / 登录 PaperMiner 账号；所有功能由用户自己的 API Key 驱动。
 - 所有配置和缓存仅保存在本机 Zotero 数据目录，插件不含任何服务器、不收集遥测。
@@ -20,7 +20,6 @@ PaperMiner 是一个面向科研工作者的 Zotero 文献阅读助手：在 Zot
 | 功能            | 说明                                                                                                                                                                                                  |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 期刊分区 / 预警 | 对接 **EasyScholar 开放接口**，按「分区 / 指标 / 中文核心 / 索引 / 榜单 / 预警」分组展示中科院分区、JCR、影响因子、CSSCI、北大核心、CSCD、科技核心、CCF、TOP 等，颜色区分不同体系；预警期刊红色标识。 |
-| 撤稿检测        | 优先使用 **Zotero 内置 Retraction Watch 数据**（Zotero 10），并用 **OpenAlex** / **Crossref** 公共接口补查；撤稿论文在条目面板与 PDF 阅读器顶部显示红色横幅，附撤稿日期、原因和声明 DOI。             |
 | 论文阅读对话    | 在 PDF 阅读器右侧停靠聊天面板，基于论文原文问答；支持流式输出、停止、历史记录、划词引用、建议问题，以及可增删改、导入导出的对话技能表（每项可设为全局系统规则或单次模板）。                           |
 | AI 阅读摘要     | 一键（或手动开启「打开 PDF 时自动生成」后）生成结构化中文摘要：研究问题、方法、数据与实验、结论、创新点、局限、启示；保存为条目的子笔记并打标签。自动生成默认关闭。                                   |
 | 生成 PPT        | 依据论文生成 5–30 页可编辑 `.pptx`，支持自定义幻灯片提示词，保存到「下载/PaperMiner」并可自动打开。                                                                                                   |
@@ -71,7 +70,7 @@ npm run build          # 输出 .scaffold/build/addon + XPI
 
 > 中文期刊默认开启 CSSCI、北大核心、CSCD、中国科技核心、卓越行动计划梯队等字段；如果之前安装过旧版本，升级后会自动迁移默认字段设置。
 
-> 不配置 EasyScholar 时，AI 与撤稿功能仍可正常使用。
+> 不配置 EasyScholar 时，AI 功能仍可正常使用。
 
 ### 对话技能（阅读对话）
 
@@ -84,11 +83,7 @@ npm run build          # 输出 .scaffold/build/addon + XPI
 - 「导入技能」支持 JSON（数组或 `{ "skills": [...] }`）以及旧版 `名称 | 提示词` 文本；
 - 「导出技能」保存到 `Downloads/paperminer-skills.json`，便于在其他设备或其他插件之间迁移。
 
-### 3. 撤稿检测（无需配置）
-
-默认开启。使用 Zotero 内置撤稿数据 + OpenAlex + Crossref 公共接口，按 DOI 查询；无 DOI 的条目会提示无法检测。
-
-### 4. 划词翻译（可选）
+### 3. 划词翻译（可选）
 
 - 默认复用已配置的 AI 模型（质量好、支持上下文），可在设置中填写「AI 翻译自定义提示词」。
 - 也可在设置中选择 **DeepL**（填 API Key）、**有道智云**（填 App Key / App Secret）或 **腾讯云机器翻译**（填 SecretId / SecretKey / 地域）。
@@ -97,12 +92,12 @@ npm run build          # 输出 .scaffold/build/addon + XPI
 
 ## 使用
 
-- **选中文献**：右侧信息栏出现「PaperMiner」区块，展示期刊徽章、撤稿状态，以及「AI 摘要 / 阅读对话 / 生成 PPT / 刷新信息」按钮。
+- **选中文献**：右侧信息栏出现「PaperMiner」区块，展示期刊徽章，以及「AI 摘要 / 阅读对话 / 生成 PPT / 刷新信息」按钮。
 - **文献列表**：右键列标题 → 勾选「期刊」列，可查看分区/影响因子/预警。
-- **打开 PDF**：阅读器顶部显示预警/撤稿横幅；工具栏出现 PaperMiner 对话按钮，点击后右侧停靠聊天面板。
+- **打开 PDF**：阅读器顶部显示期刊预警横幅；工具栏出现 PaperMiner 对话按钮，点击后右侧停靠聊天面板。
 - **划词**：在 PDF 中选中文本 → 原生菜单中出现「翻译」「问 AI」；标注右键菜单也支持翻译/询问。
-- **条目右键菜单**：右键文献（或 PDF 附件）→「PaperMiner」子菜单：更新期刊分区、检测撤稿、生成 AI 摘要、生成汇报 PPT、与论文对话、划词翻译、打开 PaperMiner 设置；支持多选批量更新期刊/撤稿/摘要/PPT。
-- **PDF 页面右键菜单**：在阅读器中右键页面 → PaperMiner 菜单：翻译选中文字、就选中文字提问、生成 AI 阅读摘要、生成汇报 PPT、打开阅读对话、刷新期刊与撤稿信息。
+- **条目右键菜单**：右键文献（或 PDF 附件）→「PaperMiner」子菜单：更新期刊分区、生成 AI 摘要、生成汇报 PPT、与论文对话、划词翻译、打开 PaperMiner 设置；支持多选批量更新期刊/摘要/PPT。
+- **PDF 页面右键菜单**：在阅读器中右键页面 → PaperMiner 菜单：翻译选中文字、就选中文字提问、生成 AI 阅读摘要、生成汇报 PPT、打开阅读对话、刷新期刊信息。
 
 ### 生成的文件位置
 
@@ -123,7 +118,6 @@ npm run build          # 输出 .scaffold/build/addon + XPI
 
 ## 已知限制
 
-- 撤稿检测依赖 DOI；中文期刊、无 DOI 的会议论文可能无法检测。
 - AI 摘要 / PPT 质量取决于所选模型与 PDF 文本可提取性（扫描版 PDF 需先 OCR）。
 - 期刊分区以 EasyScholar 数据为准；不同分区体系（JCR / 中科院基础版 / 升级版）可能不同。
 - PPT 为文本大纲型演示文稿，不会自动截取论文插图。
@@ -148,7 +142,6 @@ src/
   modules/
     ai/          # LLM 客户端、摘要、PPT、翻译、正文提取
     journal/     # EasyScholar 期刊分区
-    retraction/  # 撤稿检测（Zotero / OpenAlex / Crossref）
     chat/        # 对话上下文与会话存储
     ui/          # 条目面板、列表列、阅读器横幅、聊天面板、划词交互
     preferences/ # 设置面板
@@ -162,7 +155,7 @@ addon/           # manifest、bootstrap、XHTML、locale、CSS、图标
 
 - 基于 [zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template) 与 [zotero-plugin-toolkit](https://github.com/windingwind/zotero-plugin-toolkit)。
 - 交互与实现思路参考 [zotero-reference](https://github.com/MuiseDestiny/zotero-reference) 与 [paper-chat-for-zotero](https://github.com/syt2/paper-chat-for-zotero)。
-- 期刊数据由 [EasyScholar](https://www.easyscholar.cc/) 提供；撤稿数据来自 Zotero / [OpenAlex](https://openalex.org/) / [Crossref](https://www.crossref.org/)。
+- 期刊数据由 [EasyScholar](https://www.easyscholar.cc/) 提供。
 
 ## License
 

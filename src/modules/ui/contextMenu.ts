@@ -2,7 +2,6 @@ import { isLLMConfigured } from "../ai/config";
 import { generatePpt } from "../ai/ppt";
 import { generateSummary } from "../ai/summary";
 import { getJournalRank } from "../journal/service";
-import { getRetractionStatus } from "../retraction/service";
 import {
   findPDFAttachment,
   getRegularItemForReader,
@@ -17,7 +16,7 @@ import { refreshJournalSection } from "./journalSection";
 import { refreshReaderBanner } from "./readerBanner";
 import { refreshJournalColumn } from "./treeColumn";
 
-/** Right-click menus. Owned by the journal/retraction UI module. */
+/** Right-click menus. Owned by the journal UI module. */
 
 const MENU_ID = "paperminer-itemmenu";
 const MAX_SELECTION = 10;
@@ -107,56 +106,6 @@ async function updateJournalInfo(items: Zotero.Item[]): Promise<void> {
     progress.close(0);
     toastResult(
       `${t("journal-error", "获取期刊信息失败")}：${errorToString(error)}`,
-      true,
-    );
-  }
-}
-
-async function checkRetractions(items: Zotero.Item[]): Promise<void> {
-  if (!getPref("retractionEnabled")) {
-    toast(t("retraction-disabled", "撤稿检测未启用"), "fail");
-    return;
-  }
-  const progress = showProgress(
-    t("menu-check-retraction", "检测撤稿"),
-    t("retraction-checking", "正在检测撤稿…"),
-    1,
-  );
-  let retracted = 0;
-  let clear = 0;
-  let other = 0;
-  try {
-    for (let index = 0; index < items.length; index += 1) {
-      const item = items[index];
-      progress.update(
-        itemTitle(item) || `(${index + 1}/${items.length})`,
-        Math.round((index / items.length) * 100),
-      );
-      const result = await getRetractionStatus(item, { force: true });
-      if (result.status === "retracted") retracted += 1;
-      else if (result.status === "clear") clear += 1;
-      else other += 1;
-    }
-    progress.close(1500);
-    refreshJournalColumn();
-    refreshJournalSection();
-    refreshReaderBanner();
-    if (retracted > 0) {
-      toast(
-        `${t("retraction-retracted", "该论文已被撤稿")} · ${retracted}/${items.length}`,
-        "fail",
-      );
-      return;
-    }
-    const parts = [
-      `${t("retraction-clear", "未发现撤稿记录")} ${clear}`,
-      other ? `${t("retraction-unknown-short", "未确定")} ${other}` : "",
-    ].filter(Boolean);
-    toastResult(parts.join(" · "));
-  } catch (error) {
-    progress.close(0);
-    toastResult(
-      `${t("retraction-error", "撤稿检测失败")}：${errorToString(error)}`,
       true,
     );
   }
@@ -298,11 +247,6 @@ function menuActions(): MenuAction[] {
       id: "update-journal",
       label: t("menu-update-journal", "更新期刊分区信息"),
       run: updateJournalInfo,
-    },
-    {
-      id: "check-retraction",
-      label: t("menu-check-retraction", "检测撤稿"),
-      run: checkRetractions,
     },
     {
       id: "ai-summary",

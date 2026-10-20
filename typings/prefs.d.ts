@@ -27,12 +27,6 @@ declare namespace _ZoteroTypes {
       "journalShowSection": boolean;
       "journalShowColumn": boolean;
       "journalShowReaderBanner": boolean;
-      "retractionEnabled": boolean;
-      "retractionUseZotero": boolean;
-      "retractionUseOpenAlex": boolean;
-      "retractionUseCrossref": boolean;
-      "retractionCacheDays": number;
-      "retractionShowReaderBanner": boolean;
       "summaryAuto": boolean;
       "summaryTag": string;
       "summaryLanguage": string;

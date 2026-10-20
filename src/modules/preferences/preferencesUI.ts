@@ -15,7 +15,6 @@ import {
   getJournalCacheStats,
   testEasyScholarKey,
 } from "../journal/service";
-import { clearRetractionCache } from "../retraction/service";
 import {
   registerJournalColumn,
   unregisterJournalColumn,
@@ -688,14 +687,6 @@ async function bindActions(win: Window): Promise<void> {
     },
   );
 
-  byId<HTMLButtonElement>(win, "pm-retraction-clear")?.addEventListener(
-    "command",
-    async () => {
-      await clearRetractionCache();
-      setStatus(win, "pm-llm-status", "撤稿缓存已清除", true);
-    },
-  );
-
   byId<HTMLButtonElement>(win, "pm-chat-clear")?.addEventListener(
     "command",
     async () => {
@@ -799,13 +790,6 @@ export async function initPreferencesUI(
   bindCheckbox(win, "pm-journal-showsection", "journalShowSection");
   bindCheckbox(win, "pm-journal-showcolumn", "journalShowColumn");
   bindCheckbox(win, "pm-journal-showbanner", "journalShowReaderBanner");
-
-  bindCheckbox(win, "pm-ret-enabled", "retractionEnabled");
-  bindCheckbox(win, "pm-ret-zotero", "retractionUseZotero");
-  bindCheckbox(win, "pm-ret-openalex", "retractionUseOpenAlex");
-  bindCheckbox(win, "pm-ret-crossref", "retractionUseCrossref");
-  bindNumber(win, "pm-ret-cachedays", "retractionCacheDays");
-  bindCheckbox(win, "pm-ret-banner", "retractionShowReaderBanner");
 
   bindCheckbox(win, "pm-sum-auto", "summaryAuto");
   bindText(win, "pm-sum-tag", "summaryTag");

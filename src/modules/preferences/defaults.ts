@@ -30,13 +30,6 @@ export const DEFAULT_PREFS: Record<string, string | number | boolean> = {
   journalShowColumn: true,
   journalShowReaderBanner: true,
 
-  retractionEnabled: true,
-  retractionUseZotero: true,
-  retractionUseOpenAlex: true,
-  retractionUseCrossref: true,
-  retractionCacheDays: 30,
-  retractionShowReaderBanner: true,
-
   summaryAuto: false,
   summaryTag: "PaperMiner-AI阅读摘要",
   summaryLanguage: "auto",

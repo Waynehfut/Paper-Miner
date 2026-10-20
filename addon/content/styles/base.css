@@ -326,12 +326,6 @@
   line-height: 1.45;
 }
 
-.pm-banner-retracted {
-  color: var(--pm-danger);
-  background: color-mix(in srgb, var(--pm-danger) 10%, transparent);
-  border-color: color-mix(in srgb, var(--pm-danger) 35%, transparent);
-}
-
 .pm-banner-warning {
   color: var(--pm-warning);
   background: color-mix(in srgb, var(--pm-warning) 10%, transparent);

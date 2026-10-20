@@ -4,8 +4,7 @@ import {
   getCachedJournalRank,
   prefetchJournalRanksByPublication,
 } from "../journal/service";
-import { getCachedRetractionStatus } from "../retraction/service";
-import { getItemDOI, getItemPublication, isPaperItem } from "../../utils/item";
+import { getItemPublication, isPaperItem } from "../../utils/item";
 import { t } from "../../utils/i18n";
 import { errorToString, log } from "../../utils/log";
 import { getPref } from "../../utils/prefs";
@@ -106,11 +105,6 @@ function dataProvider(item: Zotero.Item): string {
   if (!ref || typeof ref.isRegularItem !== "function") return "";
   if (!item.isRegularItem() || !isPaperItem(item)) return "";
   try {
-    const doi = getItemDOI(item);
-    const retraction = doi ? getCachedRetractionStatus(doi) : undefined;
-    if (retraction?.status === "retracted") {
-      return t("column-retracted", "已撤稿");
-    }
     const publication = getItemPublication(item);
     if (!publication) return "";
     const cached = getCachedJournalRank(publication);
@@ -147,7 +141,7 @@ function renderCell(
     return cell;
   }
   const normalized = data.toUpperCase();
-  if (data.includes("预警") || data.includes("撤稿")) {
+  if (data.includes("预警")) {
     cell.classList.add("pm-journal-cell-bad");
   } else if (
     normalized.includes("1区") ||

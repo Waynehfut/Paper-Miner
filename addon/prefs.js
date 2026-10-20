@@ -27,14 +27,6 @@ pref("journalShowSection", true);
 pref("journalShowColumn", true);
 pref("journalShowReaderBanner", true);
 
-/* Retraction */
-pref("retractionEnabled", true);
-pref("retractionUseZotero", true);
-pref("retractionUseOpenAlex", true);
-pref("retractionUseCrossref", true);
-pref("retractionCacheDays", 30);
-pref("retractionShowReaderBanner", true);
-
 /* AI summary */
 pref("summaryAuto", false);
 pref("summaryTag", "PaperMiner-AI阅读摘要");

@@ -260,67 +260,6 @@
       </hbox>
     </groupbox>
 
-    <!-- ============================ 撤稿检测 ============================ -->
-    <groupbox aria-labelledby="paperminer-pref-retraction-title">
-      <label>
-        <html:h2
-          id="paperminer-pref-retraction-title"
-          data-l10n-id="paperminer-pref-retraction-title"
-        ></html:h2>
-      </label>
-      <description data-l10n-id="paperminer-pref-retraction-desc"></description>
-
-      <hbox align="center">
-        <checkbox
-          id="pm-ret-enabled"
-          data-l10n-id="paperminer-pref-retraction-enabled"
-        ></checkbox>
-        <checkbox
-          id="pm-ret-zotero"
-          data-l10n-id="paperminer-pref-retraction-zotero"
-        ></checkbox>
-        <checkbox
-          id="pm-ret-openalex"
-          data-l10n-id="paperminer-pref-retraction-openalex"
-        ></checkbox>
-        <checkbox
-          id="pm-ret-crossref"
-          data-l10n-id="paperminer-pref-retraction-crossref"
-        ></checkbox>
-      </hbox>
-
-      <hbox align="center">
-        <label
-          data-l10n-id="paperminer-pref-retraction-cachedays"
-          control="pm-ret-cachedays"
-        ></label>
-        <html:input
-          id="pm-ret-cachedays"
-          class="pm-pref-number"
-          type="number"
-          min="1"
-          max="365"
-          step="1"
-          inputmode="numeric"
-        ></html:input>
-        <label
-          class="pm-pref-unit"
-          data-l10n-id="paperminer-pref-unit-days"
-        ></label>
-      </hbox>
-      <hbox align="center">
-        <checkbox
-          id="pm-ret-banner"
-          data-l10n-id="paperminer-pref-retraction-banner"
-        ></checkbox>
-        <spacer flex="1"></spacer>
-        <button
-          id="pm-retraction-clear"
-          data-l10n-id="paperminer-pref-clear-cache"
-        ></button>
-      </hbox>
-    </groupbox>
-
     <!-- ============================ AI 摘要 ============================ -->
     <groupbox aria-labelledby="paperminer-pref-summary-title">
       <label>

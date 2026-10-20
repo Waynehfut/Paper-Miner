@@ -17,12 +17,12 @@
 
 ## 2. 文件所有权（不要修改他人文件）
 
-| 模块                          | 负责人   | 写入范围                                                                                                                                                                                                                                 |
-| ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 期刊分区 + 撤稿 + 对应 UI     | 负责人 A | `src/modules/journal/**`、`src/modules/retraction/**`、`src/modules/ui/journalSection.ts`、`treeColumn.ts`、`readerBanner.ts`、`contextMenu.ts`、`addon/content/styles/journal.css`、`test/journal*.test.ts`、`test/retraction*.test.ts` |
-| AI 服务（正文/摘要/PPT/翻译） | 负责人 B | `src/modules/ai/paperText.ts`、`summary.ts`、`ppt.ts`、`translate.ts`、`prompts.ts`、`src/modules/ai/outline.ts`（可新建）、`addon/content/styles/ai.css`、`test/ai*.test.ts`、`test/ppt*.test.ts`                                       |
-| 阅读对话 UI + 划词交互        | 负责人 C | `src/modules/chat/**`、`src/modules/ui/chatPanel.ts`、`selectionPopup.ts`、`addon/content/styles/chat.css`、`test/chat*.test.ts`                                                                                                         |
-| 设置界面、i18n、集成、测试    | Lead     | 其余全部（`src/hooks.ts`、`src/modules/plugin.ts`、`src/modules/preferences/**`、`addon/content/preferences.xhtml`、`addon/locale/**`、`src/utils/**`、`test/startup.test.ts` 等）                                                       |
+| 模块                          | 负责人   | 写入范围                                                                                                                                                                                           |
+| ----------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 期刊分区 + 对应 UI            | 负责人 A | `src/modules/journal/**`、`src/modules/ui/journalSection.ts`、`treeColumn.ts`、`readerBanner.ts`、`contextMenu.ts`、`addon/content/styles/journal.css`、`test/journal*.test.ts`                    |
+| AI 服务（正文/摘要/PPT/翻译） | 负责人 B | `src/modules/ai/paperText.ts`、`summary.ts`、`ppt.ts`、`translate.ts`、`prompts.ts`、`src/modules/ai/outline.ts`（可新建）、`addon/content/styles/ai.css`、`test/ai*.test.ts`、`test/ppt*.test.ts` |
+| 阅读对话 UI + 划词交互        | 负责人 C | `src/modules/chat/**`、`src/modules/ui/chatPanel.ts`、`selectionPopup.ts`、`addon/content/styles/chat.css`、`test/chat*.test.ts`                                                                   |
+| 设置界面、i18n、集成、测试    | Lead     | 其余全部（`src/hooks.ts`、`src/modules/plugin.ts`、`src/modules/preferences/**`、`addon/content/preferences.xhtml`、`addon/locale/**`、`src/utils/**`、`test/startup.test.ts` 等）                 |
 
 文件内已有 stub（签名 + 注释）。直接实现并替换 body，**保持导出名和签名**；确需改签名先发消息给 Lead。
 
@@ -35,7 +35,6 @@
   - `"renderTextSelectionPopup"` — `handler({reader, doc, params:{annotation:{text}}})`，可用 `event.append(node)` 追加按钮
   - `"createAnnotationContextMenu"` — `event.append({label, onCommand})`
   - 取消：`Zotero.Reader.unregisterEventListener(type, handler)`
-- 原生撤稿数据：`Zotero.Retractions.isRetracted(item)`、`await Zotero.Retractions.getData(item)`、`Zotero.Retractions.getReasonDescription(reason)`（Zotero 10 已内置 Retraction Watch 数据）。
 - PDF 正文：`attachment.attachmentText`（已索引全文，可能为空）；fallback `await Zotero.PDFWorker.getFullText(attachment.id, null, true)` 返回 `{ text }`。
 - 文件：全局 `IOUtils`、`PathUtils`（`IOUtils.write/readJSON/writeJSON`、`PathUtils.join`）。已封装在 `src/utils/fs.ts`。
 - 打开阅读器：`Zotero.Reader.open(attachmentID, location?, options?)`（异步）。
@@ -44,9 +43,9 @@
 
 ## 4. 共享基础设施（Lead 已实现，直接用）
 
-- `src/types.ts`：`JournalResult`、`RetractionResult`、`PaperContext`、`LLMChatOptions`、`ProgressReporter` 等。
+- `src/types.ts`：`JournalResult`、`PaperContext`、`LLMChatOptions`、`ProgressReporter` 等。
 - `src/utils/prefs.ts`：`getPref/setPref`（键名见 `src/modules/preferences/defaults.ts` 与 `addon/prefs.js`）。
-- `src/utils/cache.ts`：`pluginCache.get/set/delete/clear`，命名空间 `journal` / `retraction` / `chat`。
+- `src/utils/cache.ts`：`pluginCache.get/set/delete/clear`，命名空间 `journal` / `chat`。
 - `src/utils/fs.ts`：`getPluginDataDir`、`getDownloadsDir`、`readJSONFile`、`writeJSONFile`、`writeBinaryFile`、`sanitizeFilename`、`launchFile`。
 - `src/utils/item.ts`：`getItemDOI`、`getItemPublication`、`getItemMeta`、`findPDFAttachment`、`isPaperItem`、`getRegularItemForReader`。
 - `src/utils/html.ts`：`el(doc, tag, props, ...children)`、`zoteroIcon(doc, name)`、`clearChildren`、`escapeHtml`、`debounce`。
@@ -95,12 +94,12 @@ onReaderOpened(reader): Promise<void>
 
 ### A 必须实现（Lead 集成调用）
 
-已有 stub 的导出名保持不变：`registerJournalSection/unregisterJournalSection/refreshJournalSection`、`registerJournalColumn/unregisterJournalColumn/refreshJournalColumn`、`registerReaderBanner/unregisterReaderBanner/refreshReaderBanner`、`registerContextMenus/unregisterContextMenus`、`getJournalRank/getJournalRankByName/prefetchJournalRanks/clearJournalCache/getJournalCacheStats`、`getRetractionStatus/prefetchRetractions/clearRetractionCache`。
+已有 stub 的导出名保持不变：`registerJournalSection/unregisterJournalSection/refreshJournalSection`、`registerJournalColumn/unregisterJournalColumn/refreshJournalColumn`、`registerReaderBanner/unregisterReaderBanner/refreshReaderBanner`、`registerContextMenus/unregisterContextMenus`、`getJournalRank/getJournalRankByName/prefetchJournalRanks/clearJournalCache/getJournalCacheStats`、
 
 ## 6. UI / 视觉约定
 
 - 风格必须融入 Zotero：使用 `addon/content/styles/base.css` 中的 `.pm-*` 类与 CSS 变量（`--pm-text`、`--pm-border`、`--pm-accent` 等），不要另起一套配色；深色模式自动生效。
-- 图标优先用 Zotero 内置：`chrome://zotero/skin/16/universal/<name>.svg`（如 `abstract`、`annotate-note`、`page`、`globe`、`book`、`retracted`、`refresh`、`dialog-options`、`cross`）。品牌图标：`chrome://paperminer/content/icons/paperminer.svg`。
+- 图标优先用 Zotero 内置：`chrome://zotero/skin/16/universal/<name>.svg`（如 `abstract`、`annotate-note`、`page`、`globe`、`book`、`warning`、`refresh`、`dialog-options`、`cross`）。品牌图标：`chrome://paperminer/content/icons/paperminer.svg`。
 - 所有用户可见文本用 `t("key", "中文 fallback")`；ftl 由 Lead 统一维护。
 - 按钮/输入框用 `.pm-btn`、`.pm-input`、`.pm-badge` 等基础类；模块私有样式写进自己的 CSS 文件（`journal.css` / `chat.css` / `ai.css`），类名前缀：A `pm-journal-`、B `pm-ai-`、C `pm-chat-`（选择翻译用 `pm-translate-`）。
 - 主窗口/阅读器都支持深色模式；不要硬编码白底黑字。

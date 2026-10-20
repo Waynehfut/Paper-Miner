@@ -17,7 +17,7 @@ const CACHE_FILE_NAME = "cache.json";
 const CACHE_VERSION = 1;
 
 /**
- * A tiny persistent JSON cache shared by journal-rank and retraction lookups.
+ * A tiny persistent JSON cache for journal-rank and conversation data.
  * All access is in-memory after a lazy load; writes are debounced.
  */
 class PluginCache {
@@ -120,7 +120,6 @@ export const pluginCache = new PluginCache();
 
 export const CACHE_NAMESPACES = {
   journal: "journal",
-  retraction: "retraction",
 } as const;
 
 export const CACHE_PREFIX = config.addonRef;

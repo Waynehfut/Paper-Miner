@@ -32,20 +32,6 @@ paperminer-pref-journal-showcolumn =
 paperminer-pref-journal-showbanner =
     .label = Reader banner
 
-paperminer-pref-retraction-title = Retraction Check
-paperminer-pref-retraction-desc = Uses Zotero's built-in Retraction Watch data first, then OpenAlex / Crossref. No key required.
-paperminer-pref-retraction-enabled =
-    .label = Enable retraction check
-paperminer-pref-retraction-zotero =
-    .label = Zotero data
-paperminer-pref-retraction-openalex =
-    .label = OpenAlex
-paperminer-pref-retraction-crossref =
-    .label = Crossref
-paperminer-pref-retraction-cachedays = Cache days
-paperminer-pref-retraction-banner =
-    .label = Reader banner
-
 paperminer-pref-summary-title = AI Reading Summary
 paperminer-pref-summary-auto =
     .label = Generate automatically when opening a PDF

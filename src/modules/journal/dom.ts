@@ -1,5 +1,5 @@
 /**
- * DOM helpers for the journal / retraction UI.
+ * DOM helpers for the journal UI.
  *
  * Items are created with the XHTML namespace on purpose: the Zotero main
  * window document is a XUL document, where `document.createElement("div")`

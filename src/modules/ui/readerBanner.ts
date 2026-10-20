@@ -1,8 +1,7 @@
 import { config } from "../../../package.json";
-import type { JournalResult, RetractionResult } from "../../types";
+import type { JournalResult } from "../../types";
 import { htmlEl, zoteroIconImg } from "../journal/dom";
 import { getJournalRank } from "../journal/service";
-import { getRetractionStatus } from "../retraction/service";
 import { t } from "../../utils/i18n";
 import { getRegularItemForReader, isPaperItem } from "../../utils/item";
 import { errorToString, log } from "../../utils/log";
@@ -11,11 +10,11 @@ import { injectStylesIntoDocument } from "../../utils/styles";
 import { openURL } from "../../utils/ui";
 
 /**
- * Reader warning banner for retracted papers / early-warning journals.
+ * Reader warning banner for early-warning journals.
  *
  * The reader toolbar event only allows synchronous DOM appends, so we append a
  * small chip immediately and fill in the actual banner asynchronously once the
- * journal/retraction data is available.
+ * journal data is available.
  *
  * Closing a reader tab kills its document wrapper. Any later access to that
  * wrapper throws `can't access dead object`, so every cross-document access in
@@ -29,9 +28,7 @@ const PLUGIN_ID = config.addonID;
 
 interface ReaderBannerData {
   key: string;
-  retracted: boolean;
   journal: JournalResult | null;
-  retraction: RetractionResult | null;
 }
 
 interface ReaderContext {
@@ -85,13 +82,9 @@ function isElementAlive(element: Element | null | undefined): boolean {
 }
 
 function bannerEnabled(): boolean {
-  const journal = Boolean(
+  return Boolean(
     getPref("journalShowReaderBanner") && getPref("journalEnabled"),
   );
-  const retraction = Boolean(
-    getPref("retractionShowReaderBanner") && getPref("retractionEnabled"),
-  );
-  return journal || retraction;
 }
 
 function itemKey(item: Zotero.Item): string {
@@ -263,23 +256,8 @@ function positionBanner(
 function bannerText(data: ReaderBannerData): {
   title: string;
   lines: string[];
-  tone: "retracted" | "warning";
+  tone: "warning";
 } {
-  if (data.retracted) {
-    const retraction = data.retraction;
-    const lines: string[] = [];
-    if (retraction?.date) {
-      lines.push(`${t("retraction-date", "撤稿日期")}：${retraction.date}`);
-    }
-    if (retraction?.reason) {
-      lines.push(`${t("retraction-reason", "撤稿原因")}：${retraction.reason}`);
-    }
-    return {
-      title: t("retraction-retracted", "该论文已被撤稿"),
-      lines,
-      tone: "retracted",
-    };
-  }
   const journal = data.journal;
   const lines: string[] = [];
   if (journal?.shortText) lines.push(journal.shortText);
@@ -301,7 +279,7 @@ function buildBannerContent(
     class: `pm-root pm-banner pm-journal-reader-banner pm-journal-reader-banner-${tone}`,
     attrs: { role: "status" },
   });
-  banner.appendChild(zoteroIconImg(doc, "retracted"));
+  banner.appendChild(zoteroIconImg(doc, "warning"));
   const content = htmlEl(doc, "div", {
     class: "pm-journal-reader-banner-content",
   });
@@ -316,20 +294,6 @@ function buildBannerContent(
         title: lines.join("\n"),
       }),
     );
-  }
-  if (data.retracted && data.retraction?.noticeDOI) {
-    const link = htmlEl(doc, "button", {
-      class: "pm-link pm-journal-link-btn",
-      text: t("retraction-notice", "查看撤稿声明"),
-      attrs: { type: "button" },
-      on: {
-        click: (event: Event) => {
-          event.preventDefault();
-          openURL(`https://doi.org/${data.retraction?.noticeDOI}`);
-        },
-      },
-    });
-    content.appendChild(link);
   }
   banner.appendChild(content);
   const close = htmlEl(doc, "button", {
@@ -407,18 +371,15 @@ function updateChip(
       hideElement(chip);
       return;
     }
-    const { title, tone } = bannerText(data);
-    chip.className = `pm-journal-toolbar-chip pm-journal-toolbar-chip-${tone}`;
+    const { title } = bannerText(data);
+    chip.className = "pm-journal-toolbar-chip pm-journal-toolbar-chip-warning";
     chip.setAttribute(
       "title",
       `${title} · ${t("journal-show-banner", "显示提示横幅")}`,
     );
     const text = chip.querySelector(".pm-journal-toolbar-chip-text");
     if (text) {
-      text.textContent =
-        tone === "retracted"
-          ? t("reader-chip-retracted", "已撤稿")
-          : t("reader-chip-warning", "预警");
+      text.textContent = t("reader-chip-warning", "预警");
     }
     showElement(chip);
   } catch {
@@ -477,49 +438,30 @@ async function updateBanner(
     }
     context.itemID = item.id;
     const key = itemKey(item);
-    const [journal, retraction] = await Promise.all([
+    const journal =
       getPref("journalShowReaderBanner") && getPref("journalEnabled")
-        ? getJournalRank(item).catch((error: unknown) => {
+        ? await getJournalRank(item).catch((error: unknown) => {
             log("reader banner journal lookup failed:", errorToString(error));
             return null;
           })
-        : Promise.resolve(null),
-      getPref("retractionShowReaderBanner") && getPref("retractionEnabled")
-        ? getRetractionStatus(item).catch((error: unknown) => {
-            log(
-              "reader banner retraction lookup failed:",
-              errorToString(error),
-            );
-            return null;
-          })
-        : Promise.resolve(null),
-    ]);
-    // The reader tab may have been closed while the lookups were running.
+        : null;
+    // The reader tab may have been closed while the lookup was running.
     if (!isDocAlive(doc)) return;
 
-    const retracted = retraction?.status === "retracted";
     const warning = Boolean(
       journal && journal.status === "ok" && journal.warning,
     );
-    if (!retracted && !warning) {
+    if (!warning) {
       context.signature = undefined;
       discard();
       return;
     }
     const data: ReaderBannerData = {
       key,
-      retracted,
       journal,
-      retraction,
     };
     context.data = data;
-    const signature = [
-      key,
-      retracted ? "1" : "0",
-      journal?.shortText || "",
-      retraction?.date || "",
-      retraction?.reason || "",
-    ].join("|");
+    const signature = [key, journal?.shortText || ""].join("|");
     if (context.signature === signature && getBanner(doc)) {
       updateChip(currentChip(doc, chip), data);
       const existing = getBanner(doc);
@@ -577,7 +519,7 @@ function onRenderToolbar(event: unknown): void {
         title: t("reader-chip-checking", "PaperMiner 正在检测"),
       },
     });
-    chip.appendChild(zoteroIconImg(doc, "retracted"));
+    chip.appendChild(zoteroIconImg(doc, "warning"));
     chip.appendChild(
       htmlEl(doc, "span", {
         class: "pm-journal-toolbar-chip-text",

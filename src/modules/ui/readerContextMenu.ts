@@ -11,7 +11,6 @@ import { config } from "../../../package.json";
 import { generatePpt } from "../ai/ppt";
 import { generateSummary, openSummaryNote } from "../ai/summary";
 import { getJournalRank } from "../journal/service";
-import { getRetractionStatus } from "../retraction/service";
 import { openTranslatePopover } from "../chat/translatePopover";
 import {
   getPaperItemForReader,
@@ -112,21 +111,12 @@ function runPpt(item: Zotero.Item): void {
 
 function refreshInfo(item: Zotero.Item): void {
   const progress = showProgress(
-    t("menu-refresh-info", "刷新期刊与撤稿信息"),
+    t("menu-refresh-info", "刷新期刊信息"),
     t("journal-loading", "正在查询期刊信息…"),
     5,
   );
-  void Promise.all([
-    getJournalRank(item, { force: true }).catch((error: unknown) => {
-      log("reader menu journal refresh failed:", errorToString(error));
-      return null;
-    }),
-    getRetractionStatus(item, { force: true }).catch((error: unknown) => {
-      log("reader menu retraction refresh failed:", errorToString(error));
-      return null;
-    }),
-  ])
-    .then(([journal, retraction]) => {
+  void getJournalRank(item, { force: true })
+    .then((journal) => {
       progress.close(1200);
       const parts: string[] = [];
       if (journal?.status === "ok") {
@@ -134,15 +124,7 @@ function refreshInfo(item: Zotero.Item): void {
       } else if (journal?.status === "notfound") {
         parts.push(t("journal-notfound", "EasyScholar 未收录该期刊"));
       }
-      if (retraction?.status === "retracted") {
-        parts.push(t("retraction-retracted", "该论文已被撤稿"));
-      } else if (retraction?.status === "clear") {
-        parts.push(t("retraction-clear", "未发现撤稿记录"));
-      }
-      toast(
-        parts.join(" · ") || t("journal-empty", "无期刊信息"),
-        retraction?.status === "retracted" ? "fail" : "success",
-      );
+      toast(parts.join(" · ") || t("journal-empty", "无期刊信息"), "success");
       refreshJournalSection();
       refreshJournalColumn();
       refreshReaderBanner();
@@ -212,7 +194,7 @@ function handleViewContextMenu(rawEvent: unknown): void {
         },
       },
       {
-        label: t("reader-menu-refresh", "PaperMiner：刷新期刊与撤稿信息"),
+        label: t("reader-menu-refresh", "PaperMiner：刷新期刊信息"),
         onCommand: () => refreshInfo(item),
       },
     );

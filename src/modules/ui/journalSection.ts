@@ -1,5 +1,5 @@
 import { config } from "../../../package.json";
-import type { JournalResult, RetractionResult } from "../../types";
+import type { JournalResult } from "../../types";
 import { isLLMConfigured } from "../ai/config";
 import { generatePpt } from "../ai/ppt";
 import { generateSummary, openSummaryNote } from "../ai/summary";
@@ -15,16 +15,10 @@ import {
   statusText,
   zoteroIconImg,
 } from "../journal/dom";
-import {
-  prefetchRetractions,
-  getCachedRetractionStatus,
-  getRetractionStatus,
-} from "../retraction/service";
 import { clearChildren } from "../../utils/html";
 import { t } from "../../utils/i18n";
 import {
   findPDFAttachment,
-  getItemDOI,
   getItemPublication,
   getRegularItemForReader,
   isPaperItem,
@@ -36,8 +30,8 @@ import { openChatPanel } from "./chatPanel";
 import { refreshJournalColumn } from "./treeColumn";
 
 /**
- * Item pane section: journal badges, retraction status and AI action buttons.
- * Owned by the journal/retraction UI module.
+ * Item pane section: journal badges and AI action buttons.
+ * Owned by the journal UI module.
  */
 
 export const JOURNAL_SECTION_ID = "paperminer-journal";
@@ -273,25 +267,6 @@ async function loadJournal(
   }
 }
 
-async function loadRetraction(
-  item: Zotero.Item,
-  force = false,
-): Promise<RetractionResult | null> {
-  if (!getPref("retractionEnabled")) return null;
-  try {
-    return await getRetractionStatus(item, force ? { force: true } : {});
-  } catch (error) {
-    log("loadRetraction failed:", errorToString(error));
-    return {
-      status: "error",
-      sources: [],
-      retracted: false,
-      checkedAt: 0,
-      error: t("retraction-error", "撤稿检测失败，请稍后重试"),
-    };
-  }
-}
-
 /* ------------------------------------------------------------------ */
 /* Rendering                                                           */
 /* ------------------------------------------------------------------ */
@@ -332,18 +307,6 @@ function linkButton(
       },
     },
   });
-}
-
-const SOURCE_LABELS: Record<string, string> = {
-  zotero: "Zotero",
-  openalex: "OpenAlex",
-  crossref: "Crossref",
-};
-
-function sourcesText(sources: string[]): string {
-  if (!sources || !sources.length) return "";
-  const labels = sources.map((source) => SOURCE_LABELS[source] || source);
-  return `${t("retraction-sources", "来源")}：${labels.join(" / ")}`;
 }
 
 function renderJournalBlock(
@@ -428,7 +391,7 @@ function renderJournalBlock(
         const banner = htmlEl(doc, "div", {
           class: "pm-banner pm-banner-warning pm-journal-warning-banner",
         });
-        banner.appendChild(zoteroIconImg(doc, "retracted"));
+        banner.appendChild(zoteroIconImg(doc, "warning"));
         banner.appendChild(
           htmlEl(doc, "span", {
             class: "pm-banner-title",
@@ -502,143 +465,7 @@ function renderJournalBlock(
   }
 }
 
-function renderRetractionBlock(
-  doc: Document,
-  container: HTMLElement,
-  result: RetractionResult | null,
-  item: Zotero.Item,
-  body: HTMLDivElement,
-): void {
-  clearChildren(container);
-  container.appendChild(
-    blockHeader(doc, t("retraction-title", "撤稿检测"), () => {
-      void refreshData(doc, body, item);
-    }),
-  );
-  if (!result) {
-    container.appendChild(
-      statusText(doc, t("retraction-unknown", "暂未获取到撤稿数据")),
-    );
-    return;
-  }
-  switch (result.status) {
-    case "retracted": {
-      const banner = htmlEl(doc, "div", {
-        class: "pm-banner pm-banner-retracted pm-journal-retracted",
-      });
-      banner.appendChild(zoteroIconImg(doc, "retracted"));
-      const content = htmlEl(doc, "div", {
-        class: "pm-col pm-journal-banner-content",
-      });
-      content.appendChild(
-        htmlEl(doc, "div", {
-          class: "pm-banner-title",
-          text: t("retraction-retracted", "该论文已被撤稿"),
-        }),
-      );
-      if (result.date) {
-        content.appendChild(
-          htmlEl(doc, "div", {
-            class: "pm-journal-line",
-            text: `${t("retraction-date", "撤稿日期")}：${result.date}`,
-          }),
-        );
-      }
-      if (result.reason) {
-        content.appendChild(
-          htmlEl(doc, "div", {
-            class: "pm-journal-line",
-            text: `${t("retraction-reason", "撤稿原因")}：${result.reason}`,
-          }),
-        );
-      }
-      if (result.details && result.details !== result.reason) {
-        content.appendChild(
-          htmlEl(doc, "div", {
-            class: "pm-muted pm-journal-details",
-            text: result.details,
-          }),
-        );
-      }
-      if (result.noticeDOI) {
-        content.appendChild(
-          linkButton(
-            doc,
-            t("retraction-notice", "查看撤稿声明"),
-            `https://doi.org/${result.noticeDOI}`,
-          ),
-        );
-      }
-      const sources = sourcesText(result.sources);
-      if (sources) {
-        content.appendChild(
-          htmlEl(doc, "div", {
-            class: "pm-muted pm-journal-sources",
-            text: sources,
-          }),
-        );
-      }
-      banner.appendChild(content);
-      container.appendChild(banner);
-      break;
-    }
-    case "clear": {
-      const row = statusText(
-        doc,
-        `✓ ${t("retraction-clear", "未发现撤稿记录")}`,
-      );
-      row.classList.add("pm-journal-clear");
-      container.appendChild(row);
-      const sources = sourcesText(result.sources);
-      if (sources) {
-        container.appendChild(
-          htmlEl(doc, "div", {
-            class: "pm-muted pm-journal-sources",
-            text: sources,
-          }),
-        );
-      }
-      break;
-    }
-    case "no-doi":
-      container.appendChild(
-        statusText(
-          doc,
-          result.error ||
-            t("journal-no-doi", "该条目没有 DOI，无法进行撤稿检测"),
-        ),
-      );
-      break;
-    case "error":
-      container.appendChild(
-        statusText(
-          doc,
-          `${t("retraction-error", "撤稿检测失败")}：${result.error || ""}`,
-          {
-            tone: "danger",
-            actionLabel: t("retry", "重试"),
-            onAction: () => {
-              void refreshData(doc, body, item);
-            },
-          },
-        ),
-      );
-      break;
-    case "idle":
-    case "loading":
-      container.appendChild(
-        loadingRow(doc, t("retraction-checking", "正在检测撤稿…")),
-      );
-      break;
-    default:
-      container.appendChild(
-        statusText(doc, t("retraction-unknown", "暂未获取到撤稿数据")),
-      );
-      break;
-  }
-}
-
-/** Force a refresh of both blocks for the given item (refresh button / retry). */
+/** Force a refresh of the journal block for the given item. */
 async function refreshData(
   doc: Document,
   body: HTMLDivElement,
@@ -647,9 +474,6 @@ async function refreshData(
   const journalBlock = body.querySelector(
     '[data-pm-role="journal"]',
   ) as HTMLElement | null;
-  const retractionBlock = body.querySelector(
-    '[data-pm-role="retraction"]',
-  ) as HTMLElement | null;
   const token = currentToken(body);
   if (journalBlock) {
     clearChildren(journalBlock);
@@ -657,25 +481,13 @@ async function refreshData(
       loadingRow(doc, t("journal-loading", "正在查询期刊信息…")),
     );
   }
-  if (retractionBlock) {
-    clearChildren(retractionBlock);
-    retractionBlock.appendChild(
-      loadingRow(doc, t("retraction-checking", "正在检测撤稿…")),
-    );
-  }
-  const [journal, retraction] = await Promise.all([
-    loadJournal(item, true),
-    loadRetraction(item, true),
-  ]);
+  const journal = await loadJournal(item, true);
   if (token !== currentToken(body) || !body.isConnected) return;
   if (journalBlock) {
     renderJournalBlock(doc, journalBlock, journal, item, body);
   }
-  if (retractionBlock) {
-    renderRetractionBlock(doc, retractionBlock, retraction, item, body);
-  }
   refreshJournalColumn();
-  toast(t("journal-refreshed", "已刷新期刊与撤稿信息"), "success");
+  toast(t("journal-refreshed", "已刷新期刊信息"), "success");
 }
 
 /* ------------------------------------------------------------------ */
@@ -717,15 +529,6 @@ function renderSection(props: SectionArgs): void {
   );
   root.appendChild(journalBlock);
 
-  const retractionBlock = htmlEl(doc, "div", {
-    class: "pm-journal-block pm-journal-retraction-block",
-    dataset: { pmRole: "retraction" },
-  });
-  retractionBlock.appendChild(
-    loadingRow(doc, t("retraction-checking", "正在检测撤稿…")),
-  );
-  root.appendChild(retractionBlock);
-
   root.appendChild(htmlEl(doc, "hr", { class: "pm-divider" }));
   root.appendChild(buildActions(doc, regular, body));
 
@@ -736,16 +539,6 @@ function renderSection(props: SectionArgs): void {
   const cachedJournal = getCachedJournalRank(getItemPublication(regular));
   if (cachedJournal) {
     renderJournalBlock(doc, journalBlock, cachedJournal, regular, body);
-  }
-  const cachedRetraction = getCachedRetractionStatus(getItemDOI(regular));
-  if (cachedRetraction) {
-    renderRetractionBlock(
-      doc,
-      retractionBlock,
-      cachedRetraction,
-      regular,
-      body,
-    );
   }
   void refreshSectionData(doc, body, regular, setSectionSummary);
 }
@@ -760,30 +553,14 @@ async function refreshSectionData(
   const journalBlock = body.querySelector(
     '[data-pm-role="journal"]',
   ) as HTMLElement | null;
-  const retractionBlock = body.querySelector(
-    '[data-pm-role="retraction"]',
-  ) as HTMLElement | null;
-  if (!journalBlock && !retractionBlock) return;
-  const [journal, retraction] = await Promise.all([
-    loadJournal(regular),
-    loadRetraction(regular),
-  ]);
+  if (!journalBlock) return;
+  const journal = await loadJournal(regular);
   if (token !== currentToken(body) || !body.isConnected) return;
-  if (journalBlock) {
-    renderJournalBlock(doc, journalBlock, journal, regular, body);
-  }
-  if (retractionBlock) {
-    renderRetractionBlock(doc, retractionBlock, retraction, regular, body);
-  }
-  const summary: string[] = [];
-  if (retraction && retraction.status === "retracted") {
-    summary.push(t("retraction-retracted", "该论文已被撤稿"));
-  }
-  if (journal && journal.status === "ok" && journal.shortText) {
-    summary.push(journal.shortText);
-  }
+  renderJournalBlock(doc, journalBlock, journal, regular, body);
   try {
-    setSectionSummary?.(summary.join(" · "));
+    setSectionSummary?.(
+      journal?.status === "ok" && journal.shortText ? journal.shortText : "",
+    );
   } catch {
     // ignore
   }
@@ -804,7 +581,6 @@ function scheduleSelectionPrefetch(item: Zotero.Item | null | undefined): void {
     const regular = resolveRegularItem(item);
     if (!regular) return;
     void prefetchJournalRanks([regular]);
-    void prefetchRetractions([regular]);
   }, 500);
 }
 
@@ -850,7 +626,7 @@ function registerNotifier(): void {
 
 export function registerJournalSection(): string | false {
   if (!getPref("journalShowSection")) return false;
-  if (!getPref("journalEnabled") && !getPref("retractionEnabled")) {
+  if (!getPref("journalEnabled")) {
     return false;
   }
   if (registeredKey) return registeredKey;

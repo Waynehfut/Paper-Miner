@@ -2,7 +2,6 @@
 import { assert } from "chai";
 import { config } from "../package.json";
 import { getPaperText, getPaperContext } from "../src/modules/ai/paperText";
-import { getRetractionStatus } from "../src/modules/retraction/service";
 import { getJournalRank } from "../src/modules/journal/service";
 
 function fixturePath(): string {
@@ -84,12 +83,6 @@ describe("PaperMiner integration", function () {
     }
   });
 
-  it("detects a known retracted DOI", async function () {
-    const result = await getRetractionStatus(item);
-    assert.isTrue(result.retracted, `expected retracted, got ${result.status}`);
-    assert.include(result.sources, "openalex");
-  });
-
   it("renders the item pane section for a selected paper", async function () {
     const pane = Zotero.getActiveZoteroPane();
     pane.selectItem(item.id);
@@ -104,7 +97,6 @@ describe("PaperMiner integration", function () {
     const text = body!.textContent || "";
     assert.match(text, /AI (摘要|Summary)/);
     assert.match(text, /(阅读对话|Chat with Paper)/);
-    assert.match(text, /(撤稿|Retraction)/);
     assert.isTrue(
       text.includes("EasyScholar") || text.includes("期刊"),
       "journal area should be rendered",
@@ -148,7 +140,7 @@ describe("PaperMiner integration", function () {
     const menu = doc.getElementById("paperminer-itemmenu");
     assert.ok(menu, "PaperMiner submenu should be injected");
     const items = menu!.querySelectorAll("menuitem");
-    assert.isAtLeast(items.length, 7, "submenu should expose all core actions");
+    assert.isAtLeast(items.length, 6, "submenu should expose all core actions");
     assert.isAtLeast(
       menu!.querySelectorAll("menuseparator").length,
       2,
@@ -157,14 +149,7 @@ describe("PaperMiner integration", function () {
     const labels = Array.from(items)
       .map((item) => String(item.getAttribute("label") || ""))
       .join("|");
-    for (const expected of [
-      "摘要",
-      "PPT",
-      "对话",
-      "划词翻译",
-      "设置",
-      "撤稿",
-    ]) {
+    for (const expected of ["摘要", "PPT", "对话", "划词翻译", "设置"]) {
       assert.include(labels, expected, `missing menu action: ${expected}`);
     }
   });
@@ -209,7 +194,7 @@ describe("PaperMiner reader integration", function () {
     if (item) await item.eraseTx();
   });
 
-  it("injects the reader toolbar button and warning banner", async function () {
+  it("injects the reader toolbar button", async function () {
     const doc = readerDoc;
     assert.ok(doc, "reader iframe document");
     let button: Element | null = null;
@@ -224,29 +209,6 @@ describe("PaperMiner reader integration", function () {
     const iconStyle = doc!.defaultView!.getComputedStyle(icon!);
     assert.equal(iconStyle.width, "16px");
     assert.equal(iconStyle.height, "16px");
-    let banner: Element | null = null;
-    for (let attempt = 0; attempt < 20; attempt += 1) {
-      banner = doc!.querySelector(
-        ".pm-journal-reader-banner, .pm-journal-toolbar-chip",
-      );
-      if (banner) break;
-      await Zotero.Promise.delay(500);
-    }
-    if (!banner) {
-      const listeners = (Zotero.Reader as any)._registeredListeners || [];
-      const classes = Array.from(
-        doc!.querySelectorAll(
-          '[class*="pm-journal"], [id*="paperminer"], [class*="paperminer"]',
-        ),
-      ).map((node) => `${node.id || ""}.${node.className || ""}`);
-      assert.fail(
-        `banner missing; listeners=${listeners
-          .map((item: any) => item.type)
-          .join(
-            ",",
-          )}; nodes=${classes.join("|")}; connected=${doc!.isConnected}`,
-      );
-    }
   });
 
   it("provides a PaperMiner reader view context menu", async function () {
@@ -269,7 +231,7 @@ describe("PaperMiner reader integration", function () {
     assert.include(labels.join("|"), "AI 阅读摘要");
     assert.include(labels.join("|"), "汇报 PPT");
     assert.include(labels.join("|"), "阅读对话");
-    assert.include(labels.join("|"), "刷新期刊与撤稿信息");
+    assert.include(labels.join("|"), "刷新期刊信息");
   });
 
   it("opens and closes the docked chat panel", async function () {

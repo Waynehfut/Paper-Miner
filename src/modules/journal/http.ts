@@ -1,6 +1,6 @@
 /**
  * Small JSON-over-HTTP helper shared by the journal (EasyScholar) and
- * retraction (OpenAlex / Crossref) services.
+ * journal service.
  *
  * Zotero plugins run in a privileged sandbox, so plain `fetch` is available
  * on modern Zotero versions. When it is missing (or `AbortController` is not
