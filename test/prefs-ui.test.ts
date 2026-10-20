@@ -353,6 +353,16 @@ describe("PaperMiner template and numeric controls", function () {
         );
       }
 
+      const tempUnit = (
+        doc.getElementById("pm-llm-temperature") as HTMLElement
+      ).parentElement?.querySelector(".pm-pref-unit") as HTMLElement | null;
+      assert.ok(tempUnit, "temperature unit label should exist");
+      assert.isAtMost(
+        tempUnit.getBoundingClientRect().height,
+        20,
+        "unit label should stay on one line",
+      );
+
       const dirInput = doc.getElementById("pm-ppt-dir") as HTMLInputElement;
       const dirButton = doc.getElementById(
         "pm-ppt-pick-dir",

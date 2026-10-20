@@ -247,9 +247,12 @@
 }
 
 #paperminer-prefpane .pm-pref-unit {
+  flex: 0 0 auto;
+  min-width: max-content;
   margin-inline-start: 4px;
   margin-inline-end: 12px;
   align-self: center;
+  white-space: nowrap;
 }
 
 #paperminer-prefpane .pm-pref-number {
