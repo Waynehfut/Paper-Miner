@@ -326,6 +326,8 @@ function renderSkillTable(win: Window): void {
         skills[index] = { ...skills[index], prompt: prompt.value };
         persist();
       });
+      name.addEventListener("blur", () => persist(true));
+      prompt.addEventListener("blur", () => persist(true));
       remove.addEventListener("click", () => {
         skills.splice(index, 1);
         draw();
