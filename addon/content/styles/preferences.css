@@ -20,7 +20,7 @@
   margin-bottom: 6px;
 }
 
-#paperminer-prefpane label {
+#paperminer-prefpane label[control] {
   min-width: 120px;
 }
 
@@ -262,12 +262,19 @@
 
 #paperminer-prefpane .pm-pref-path-row #pm-ppt-pick-dir {
   flex: 0 0 auto;
-  min-width: 86px;
-  height: 26px;
   margin: 0;
+  align-self: center;
+}
+
+#paperminer-prefpane button:not(.pm-skill-remove) {
+  flex: 0 0 auto;
   align-self: center;
 }
 
 #paperminer-prefpane .pm-pref-path-row #pm-ppt-dir {
   min-width: 0;
+}
+
+#paperminer-prefpane button:not(.pm-skill-remove) {
+  min-height: 25px;
 }

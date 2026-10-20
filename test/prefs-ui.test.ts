@@ -309,6 +309,26 @@ describe("PaperMiner template and numeric controls", function () {
         Zotero.launchURL = originalLaunch;
       }
 
+      for (const id of [
+        "pm-llm-test",
+        "pm-ppt-pick-dir",
+        "pm-open-datadir",
+        "pm-chat-skill-add",
+      ]) {
+        const button = doc.getElementById(id) as HTMLButtonElement;
+        assert.ok(button, `${id} should exist`);
+        assert.isAtMost(
+          button.getBoundingClientRect().width,
+          140,
+          `${id} should not be stretched by label min-width`,
+        );
+        assert.isAtLeast(
+          button.getBoundingClientRect().height,
+          21,
+          `${id} should keep a clickable height`,
+        );
+      }
+
       const dirInput = doc.getElementById("pm-ppt-dir") as HTMLInputElement;
       const dirButton = doc.getElementById(
         "pm-ppt-pick-dir",
