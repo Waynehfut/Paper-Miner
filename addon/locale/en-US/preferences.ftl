@@ -139,3 +139,5 @@ paperminer-pref-translate-desc = Choose a translation engine and target language
 paperminer-pref-translate-deepl-title = DeepL settings
 paperminer-pref-translate-youdao-title = Youdao settings
 paperminer-pref-translate-tencent-title = Tencent Cloud TMT settings
+paperminer-pref-chat-skill-folder =
+    .label = Open skills folder

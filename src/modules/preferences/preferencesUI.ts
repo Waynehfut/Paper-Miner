@@ -25,6 +25,7 @@ import {
 } from "../ui/journalSection";
 import { pluginCache } from "../../utils/cache";
 import {
+  ensureDir,
   getDownloadsDir,
   getGlobal,
   getPluginDataDir,
@@ -469,6 +470,49 @@ function renderSkillTable(win: Window): void {
         win,
         "pm-chat-skill-status",
         t("chat-skills-export-failed", "导出失败", {
+          error: String((error as Error)?.message || error),
+        }),
+        false,
+      );
+    }
+  });
+
+  const folderButton = byId<HTMLButtonElement>(win, "pm-chat-skill-folder");
+  folderButton?.addEventListener("command", async () => {
+    try {
+      const io = getGlobal().IOUtils;
+      if (!io) throw new Error("IOUtils unavailable");
+      const dir = joinPath(getPluginDataDir(), "skills");
+      await ensureDir(dir);
+      const exportable = validSkills();
+      await io.writeUTF8(
+        joinPath(dir, "skills.json"),
+        JSON.stringify(exportable, null, 2),
+      );
+      await io.writeUTF8(
+        joinPath(dir, "README.md"),
+        [
+          "# PaperMiner skills",
+          "",
+          "skills.json contains the current conversation skills.",
+          "Format: an array of { label, prompt, global? }.",
+          "global: true means the instruction is sent as a system rule on every turn.",
+          "",
+          "You can edit this file and use Import skills in PaperMiner settings.",
+        ].join("\n"),
+      );
+      revealFile(dir);
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t("chat-skills-folder-opened", "已打开技能文件夹"),
+        true,
+      );
+    } catch (error) {
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t("chat-skills-folder-failed", "打开技能文件夹失败", {
           error: String((error as Error)?.message || error),
         }),
         false,

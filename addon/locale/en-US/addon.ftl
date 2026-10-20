@@ -91,3 +91,5 @@ paperminer-journal-cat-index = Chinese core
 paperminer-journal-cat-open = Open index
 paperminer-journal-cat-level = Rankings
 paperminer-journal-cat-danger = Warning
+paperminer-chat-skills-folder-opened = Opened the skills folder
+paperminer-chat-skills-folder-failed = Could not open the skills folder: { $error }

@@ -139,3 +139,5 @@ paperminer-pref-translate-desc = 选择翻译引擎并设置目标语言。除�
 paperminer-pref-translate-deepl-title = DeepL 配置
 paperminer-pref-translate-youdao-title = 有道智云配置
 paperminer-pref-translate-tencent-title = 腾讯云机器翻译配置
+paperminer-pref-chat-skill-folder =
+    .label = 打开技能文件夹

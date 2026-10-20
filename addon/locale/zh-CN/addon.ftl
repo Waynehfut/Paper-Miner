@@ -214,3 +214,5 @@ paperminer-journal-cat-index = 中文核心
 paperminer-journal-cat-open = 开放索引
 paperminer-journal-cat-level = 榜单
 paperminer-journal-cat-danger = 预警
+paperminer-chat-skills-folder-opened = 已打开技能文件夹
+paperminer-chat-skills-folder-failed = 打开技能文件夹失败：{ $error }
