@@ -31,9 +31,15 @@
 }
 
 .pm-journal-badges {
+  --pm-cat-quartile: #2563eb;
+  --pm-cat-metric: #047857;
+  --pm-cat-cn: #b45309;
+  --pm-cat-index: #6d28d9;
+  --pm-cat-ranking: #0f766e;
+  --pm-cat-warning: #dc2626;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   margin-top: 2px;
 }
 
@@ -46,8 +52,13 @@
 }
 
 .pm-journal-group-label {
-  flex: 0 0 50px;
+  flex: 0 0 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
   font-size: 10px;
+  font-weight: 700;
   line-height: 18px;
   color: var(--pm-text-muted);
   text-align: right;
@@ -55,30 +66,64 @@
   user-select: none;
 }
 
+.pm-journal-group-label::before {
+  content: "";
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pm-journal-badge-group-quartile .pm-journal-group-label {
+  color: var(--pm-cat-quartile);
+}
+
+.pm-journal-badge-group-metric .pm-journal-group-label {
+  color: var(--pm-cat-metric);
+}
+
+.pm-journal-badge-group-cn .pm-journal-group-label {
+  color: var(--pm-cat-cn);
+}
+
+.pm-journal-badge-group-index .pm-journal-group-label {
+  color: var(--pm-cat-index);
+}
+
+.pm-journal-badge-group-ranking .pm-journal-group-label {
+  color: var(--pm-cat-ranking);
+}
+
+.pm-journal-badge-group-warning .pm-journal-group-label {
+  color: var(--pm-cat-warning);
+}
+
 .pm-journal-badge {
   --pm-badge-color: var(--pm-text-secondary);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   max-width: 100%;
-  padding: 1px 7px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--pm-badge-color) 32%, transparent);
-  background: color-mix(in srgb, var(--pm-badge-color) 12%, transparent);
-  color: var(--pm-badge-color);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--pm-badge-color) 78%, #000 22%);
+  background: var(--pm-badge-color);
+  color: #fff;
   font-size: 11px;
   line-height: 17px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .pm-journal-badge-cat {
   flex: 0 0 auto;
   font-size: 10px;
   font-weight: 600;
-  opacity: 0.72;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .pm-journal-badge-val {
@@ -87,54 +132,42 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 700;
+  color: #fff;
 }
 
 .pm-journal-badge-solo {
   font-size: 11px;
   font-weight: 700;
-  opacity: 1;
+  color: #fff;
 }
 
-/* Category colour families make the different ranking systems easy to tell
-   apart at a glance. */
 .pm-journal-badge-quartile {
-  --pm-badge-color: var(--pm-accent);
+  --pm-badge-color: var(--pm-cat-quartile);
 }
 
 .pm-journal-badge-metric {
-  --pm-badge-color: var(--pm-success);
+  --pm-badge-color: var(--pm-cat-metric);
 }
 
 .pm-journal-badge-cn {
-  --pm-badge-color: var(--accent-gold, #b45309);
+  --pm-badge-color: var(--pm-cat-cn);
 }
 
 .pm-journal-badge-index {
-  --pm-badge-color: #7c3aed;
+  --pm-badge-color: var(--pm-cat-index);
 }
 
 .pm-journal-badge-ranking {
-  --pm-badge-color: #0f766e;
+  --pm-badge-color: var(--pm-cat-ranking);
 }
 
 .pm-journal-badge-warning {
-  --pm-badge-color: var(--pm-danger);
-  border-color: color-mix(in srgb, var(--pm-danger) 45%, transparent);
-  background: color-mix(in srgb, var(--pm-danger) 16%, transparent);
+  --pm-badge-color: var(--pm-cat-warning);
+  border-color: #991b1b;
 }
 
-@media (prefers-color-scheme: dark) {
-  .pm-journal-badge-cn {
-    --pm-badge-color: var(--accent-gold, #fbbf24);
-  }
-
-  .pm-journal-badge-index {
-    --pm-badge-color: #c4b5fd;
-  }
-
-  .pm-journal-badge-ranking {
-    --pm-badge-color: #5eead4;
-  }
+.pm-journal-badge:hover {
+  filter: brightness(1.08);
 }
 
 .pm-journal-warning-banner {
