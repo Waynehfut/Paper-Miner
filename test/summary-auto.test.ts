@@ -6,8 +6,15 @@ import {
 } from "../src/modules/ai/summary";
 import { getPref, setPref } from "../src/utils/prefs";
 
-const FIXTURE =
-  "/Users/hao/Documents/dsh/paperminer/test/fixtures/sample-paper.pdf";
+function fixturePath(): string {
+  const cwd = Services.dirsvc.get("CurWorkD", Ci.nsIFile).path;
+  const pathUtils = (globalThis as any).PathUtils;
+  return pathUtils?.join
+    ? pathUtils.join(cwd, "test", "fixtures", "sample-paper.pdf")
+    : `${cwd}/test/fixtures/sample-paper.pdf`;
+}
+
+const FIXTURE = fixturePath();
 
 async function createPaper(title: string): Promise<Zotero.Item> {
   const item = new Zotero.Item("journalArticle");

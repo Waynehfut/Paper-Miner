@@ -6,8 +6,15 @@ import { translateText } from "../src/modules/ai/translate";
 import { getPref, setPref } from "../src/utils/prefs";
 import { joinPath } from "../src/utils/fs";
 
-const FIXTURE =
-  "/Users/hao/Documents/dsh/paperminer/test/fixtures/sample-paper.pdf";
+function fixturePath(): string {
+  const cwd = Services.dirsvc.get("CurWorkD", Ci.nsIFile).path;
+  const pathUtils = (globalThis as any).PathUtils;
+  return pathUtils?.join
+    ? pathUtils.join(cwd, "test", "fixtures", "sample-paper.pdf")
+    : `${cwd}/test/fixtures/sample-paper.pdf`;
+}
+
+const FIXTURE = fixturePath();
 const OUTPUT_DIR = "/Users/hao/Documents/dsh/paperminer/.scaffold/test-out";
 
 function jsonResponse(content: string): Response {

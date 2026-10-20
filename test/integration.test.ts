@@ -5,8 +5,15 @@ import { getPaperText, getPaperContext } from "../src/modules/ai/paperText";
 import { getRetractionStatus } from "../src/modules/retraction/service";
 import { getJournalRank } from "../src/modules/journal/service";
 
-const FIXTURE =
-  "/Users/hao/Documents/dsh/paperminer/test/fixtures/sample-paper.pdf";
+function fixturePath(): string {
+  const cwd = Services.dirsvc.get("CurWorkD", Ci.nsIFile).path;
+  const pathUtils = (globalThis as any).PathUtils;
+  return pathUtils?.join
+    ? pathUtils.join(cwd, "test", "fixtures", "sample-paper.pdf")
+    : `${cwd}/test/fixtures/sample-paper.pdf`;
+}
+
+const FIXTURE = fixturePath();
 
 async function createTestPaper(): Promise<{
   item: Zotero.Item;
