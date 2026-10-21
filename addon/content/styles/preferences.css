@@ -298,3 +298,11 @@
   padding: 0;
   line-height: normal;
 }
+
+#pm-about-version {
+  margin: 0 0 8px;
+  color: var(--pm-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+  user-select: text;
+}

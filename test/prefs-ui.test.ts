@@ -293,6 +293,20 @@ describe("PaperMiner template and numeric controls", function () {
       const originalLaunch = Zotero.launchURL;
       try {
         (Zotero as any).launchURL = (url: string) => launched.push(String(url));
+        const about = doc.getElementById("pm-about-version") as HTMLElement;
+        assert.ok(about, "about version line should exist");
+        const aboutText = String(about.textContent || "");
+        assert.equal(
+          (aboutText.match(/数据目录缓存/g) || []).length,
+          1,
+          `about version line should not be duplicated: ${aboutText}`,
+        );
+        assert.equal(
+          (aboutText.match(/PaperMiner dev/g) || []).length,
+          1,
+          `about version prefix should appear once: ${aboutText}`,
+        );
+
         (doc.getElementById("pm-about-homepage") as HTMLAnchorElement).click();
         (doc.getElementById("pm-about-issues") as HTMLAnchorElement).click();
         assert.include(

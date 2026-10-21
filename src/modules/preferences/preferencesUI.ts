@@ -877,8 +877,9 @@ export async function initPreferencesUI(
     const count = getJournalCacheStats().count;
     const buildVersion = (config as any).buildVersion || "dev";
     const versionText = `PaperMiner ${buildVersion} · 数据目录缓存 ${count} 条 · PPT 默认输出 ${getDownloadsDir()}/PaperMiner`;
+    // A plain HTML text node renders exactly once (XUL descriptions mirror
+    // text into their `value` attribute, which previously duplicated it).
     versionLabel.textContent = versionText;
-    versionLabel.setAttribute("value", versionText);
   }
   log("preferences UI ready");
 }
