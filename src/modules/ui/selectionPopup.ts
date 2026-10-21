@@ -12,7 +12,7 @@ import { config } from "../../../package.json";
 import { getItemTitle } from "../../utils/item";
 import { t } from "../../utils/i18n";
 import { errorToString, log } from "../../utils/log";
-import { getPref } from "../../utils/prefs";
+import { getPref, setPref } from "../../utils/prefs";
 import { createAbortController } from "../../utils/abort";
 import { isTranslationConfigured, translateText } from "../ai/translate";
 import { injectStylesIntoDocument } from "../../utils/styles";
@@ -149,6 +149,10 @@ function appendInlineTranslation(
 ): HTMLElement {
   const card = doc.createElementNS(HTML_NS, "div") as HTMLDivElement;
   card.className = "pm-inline-translate";
+  const savedWidth = Number(getPref("translateCardWidth")) || 300;
+  const savedHeight = Number(getPref("translateCardHeight")) || 170;
+  card.style.width = `${Math.min(720, Math.max(240, savedWidth))}px`;
+  card.style.height = `${Math.min(600, Math.max(120, savedHeight))}px`;
   card.addEventListener("mousedown", (event) => event.stopPropagation());
   card.addEventListener("pointerup", (event) => event.stopPropagation());
 
@@ -175,6 +179,23 @@ function appendInlineTranslation(
   const ask = makeButton(doc, t("chat-ask-ai", "问 AI"));
   footer.append(copy, settings, ask);
   card.append(head, output, footer);
+
+  if (typeof ResizeObserver !== "undefined") {
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+    const observer = new ResizeObserver(() => {
+      if (!card.isConnected) {
+        observer.disconnect();
+        return;
+      }
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const rect = card.getBoundingClientRect();
+        setPref("translateCardWidth", Math.round(rect.width));
+        setPref("translateCardHeight", Math.round(rect.height));
+      }, 250);
+    });
+    observer.observe(card);
+  }
 
   const controller = createAbortController();
   let result = "";

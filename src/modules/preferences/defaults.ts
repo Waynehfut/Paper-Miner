@@ -61,6 +61,8 @@ export const DEFAULT_PREFS: Record<string, string | number | boolean> = {
   translateTencentSecretKey: "",
   translateTencentRegion: "ap-guangzhou",
   translateMyMemoryEmail: "",
+  translateCardWidth: 300,
+  translateCardHeight: 170,
 };
 
 function prefPath(key: string): string {

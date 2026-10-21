@@ -62,3 +62,5 @@ pref("translateTencentSecretId", "");
 pref("translateTencentSecretKey", "");
 pref("translateTencentRegion", "ap-guangzhou");
 pref("translateMyMemoryEmail", "");
+pref("translateCardWidth", 300);
+pref("translateCardHeight", 170);

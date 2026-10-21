@@ -880,11 +880,15 @@
   z-index: 2147483647;
   box-sizing: border-box;
   width: 340px;
+  height: 260px;
+  min-width: 280px;
+  min-height: 160px;
   max-width: calc(100vw - 16px);
-  max-height: 300px;
+  max-height: calc(100vh - 16px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  resize: both;
   border: 1px solid var(--pm-border-strong);
   border-radius: 8px;
   background: var(--pm-bg);
@@ -1054,9 +1058,15 @@
   flex-direction: column;
   gap: 5px;
   width: 300px;
-  max-width: min(360px, 80vw);
+  min-width: 240px;
+  max-width: min(720px, 90vw);
+  height: 170px;
+  min-height: 120px;
+  max-height: 70vh;
   margin-top: 6px;
   padding: 8px;
+  overflow: auto;
+  resize: both;
   border: 1px solid var(--pm-border);
   border-radius: 6px;
   background: var(--pm-bg);
@@ -1091,7 +1101,9 @@
 }
 
 .pm-inline-translate-text {
-  max-height: 120px;
+  flex: 1 1 auto;
+  min-height: 48px;
+  max-height: none;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1108,10 +1120,12 @@
 }
 
 .pm-inline-translate-footer {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  padding-right: 12px;
 }
 
 .pm-inline-translate-btn {

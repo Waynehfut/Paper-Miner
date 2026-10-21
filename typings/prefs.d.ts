@@ -55,6 +55,8 @@ declare namespace _ZoteroTypes {
       "translateTencentSecretKey": string;
       "translateTencentRegion": string;
       "translateMyMemoryEmail": string;
+      "translateCardWidth": number;
+      "translateCardHeight": number;
     };
   }
 }
