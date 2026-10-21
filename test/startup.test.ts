@@ -29,10 +29,10 @@ describe("PaperMiner startup", function () {
       ours,
       `sections=${JSON.stringify(sections.map((section) => section.paneID))}`,
     );
-    // Item-pane icons need intrinsic 16/20 px dimensions; the source SVG is
-    // 512 px and would otherwise render oversized in Zotero's side nav.
-    assert.include(String(ours.header.icon), "content/icons/header-16.png");
-    assert.include(String(ours.sidenav.icon), "content/icons/sidenav-20.png");
+    // Item-pane icons are small SVGs with intrinsic 16/20 px dimensions;
+    // using the 512 px artwork directly makes Zotero render them oversized.
+    assert.include(String(ours.header.icon), "content/icons/header-16.svg");
+    assert.include(String(ours.sidenav.icon), "content/icons/sidenav-20.svg");
   });
 
   it("registers the item tree column", function () {
