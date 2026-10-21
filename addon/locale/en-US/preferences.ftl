@@ -150,3 +150,6 @@ paperminer-pref-translate-bing-desc = No API key. Uses Microsoft Edge's online t
 paperminer-pref-translate-mymemory-title = MyMemory (free)
 paperminer-pref-translate-mymemory-desc = No API key. Anonymous quota is about 5,000 characters per day; adding an email raises the quota. Free endpoints may rate-limit.
 paperminer-pref-translate-mymemory-email = MyMemory email (optional)
+paperminer-pref-chat-skills-files-desc = Skills are stored as Markdown files under the Zotero data directory at paperminer/skills/ (one .md per skill). Edit them, then click "Reload from folder".
+paperminer-pref-chat-skill-reload =
+    .label = Reload from folder

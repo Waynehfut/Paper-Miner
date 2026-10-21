@@ -93,3 +93,6 @@ paperminer-journal-cat-level = Rankings
 paperminer-journal-cat-danger = Warning
 paperminer-chat-skills-folder-opened = Opened the skills folder
 paperminer-chat-skills-folder-failed = Could not open the skills folder: { $error }
+paperminer-chat-skills-files-loaded = Reloaded { $count } skills from Markdown
+paperminer-chat-skills-files-missing = Skills folder not found. Click "Open skills folder" first.
+paperminer-chat-skills-files-save-failed = Could not write Markdown skill files: { $error }

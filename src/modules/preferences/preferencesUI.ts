@@ -7,6 +7,12 @@ import {
   saveSkillRows,
 } from "../chat/quickPhrases";
 import type { QuickPhrase } from "../chat/quickPhrases";
+import {
+  getSkillsDir,
+  loadSkillFiles,
+  parseSkillMarkdown,
+  writeSkillFiles,
+} from "../chat/skillFiles";
 import { fetchAvailableModels, testLLMConnection } from "../ai/llm";
 import { LLM_PRESETS, getLLMPreset } from "../ai/presets";
 import { JOURNAL_FIELDS, DEFAULT_ENABLED_FIELDS } from "../journal/fields";
@@ -25,7 +31,6 @@ import {
 } from "../ui/journalSection";
 import { pluginCache } from "../../utils/cache";
 import {
-  ensureDir,
   getDownloadsDir,
   getGlobal,
   getPluginDataDir,
@@ -244,12 +249,22 @@ function populatePresets(win: Window): void {
   }
 }
 
-function renderSkillTable(win: Window): void {
+async function renderSkillTable(win: Window): Promise<void> {
   const container = byId<HTMLElement>(win, "pm-chat-skill-table");
   if (!container) return;
   const doc = win.document;
   let skills: QuickPhrase[] = loadSkillRows();
+
+  // Markdown files are canonical once the skills folder exists. This lets
+  // users edit skills outside Zotero without fighting the preferences JSON.
+  const fileRows = await loadSkillFiles();
+  if (fileRows) {
+    skills = fileRows;
+    saveSkillRows(skills);
+  }
+
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  let fileWriteChain: Promise<unknown> = Promise.resolve();
 
   const validSkills = () =>
     skills
@@ -260,11 +275,29 @@ function renderSkillTable(win: Window): void {
       }))
       .filter((skill) => skill.prompt);
 
+  const syncFiles = (): Promise<unknown> => {
+    const snapshot = validSkills();
+    fileWriteChain = fileWriteChain
+      .then(() => writeSkillFiles(snapshot))
+      .catch((error: unknown) => {
+        setStatus(
+          win,
+          "pm-chat-skill-status",
+          t("chat-skills-files-save-failed", "写入 Markdown 技能文件失败", {
+            error: String((error as Error)?.message || error),
+          }),
+          false,
+        );
+      });
+    return fileWriteChain;
+  };
+
   const persist = (immediate = false) => {
     if (saveTimer) clearTimeout(saveTimer);
     const save = () => {
       saveSkillRows(skills);
       const valid = validSkills();
+      void syncFiles();
       setStatus(
         win,
         "pm-chat-skill-status",
@@ -372,7 +405,7 @@ function renderSkillTable(win: Window): void {
       empty.className = "pm-skill-empty";
       empty.textContent = t(
         "chat-skills-empty",
-        "还没有技能。点击「新增技能」创建，或从 JSON/TXT 文件导入。",
+        "还没有技能。点击「新增技能」创建，或直接在 Markdown 文件夹中添加文件。",
       );
       container.appendChild(empty);
     }
@@ -411,7 +444,14 @@ function renderSkillTable(win: Window): void {
     const file = fileInput.files?.[0];
     if (!file) return;
     try {
-      const imported = parseSkillsPayload(await file.text());
+      const text = await file.text();
+      const singleMarkdown =
+        /^---\s*\n/.test(text.trim()) || /^#\s+/.test(text.trim());
+      const imported = singleMarkdown
+        ? [parseSkillMarkdown(text, file.name.replace(/\.md$/i, ""))].filter(
+            (skill): skill is QuickPhrase => Boolean(skill),
+          )
+        : parseSkillsPayload(text);
       if (!imported.length) {
         setStatus(
           win,
@@ -480,28 +520,9 @@ function renderSkillTable(win: Window): void {
   const folderButton = byId<HTMLButtonElement>(win, "pm-chat-skill-folder");
   folderButton?.addEventListener("command", async () => {
     try {
-      const io = getGlobal().IOUtils;
-      if (!io) throw new Error("IOUtils unavailable");
-      const dir = joinPath(getPluginDataDir(), "skills");
-      await ensureDir(dir);
-      const exportable = validSkills();
-      await io.writeUTF8(
-        joinPath(dir, "skills.json"),
-        JSON.stringify(exportable, null, 2),
-      );
-      await io.writeUTF8(
-        joinPath(dir, "README.md"),
-        [
-          "# PaperMiner skills",
-          "",
-          "skills.json contains the current conversation skills.",
-          "Format: an array of { label, prompt, global? }.",
-          "global: true means the instruction is sent as a system rule on every turn.",
-          "",
-          "You can edit this file and use Import skills in PaperMiner settings.",
-        ].join("\n"),
-      );
-      revealFile(dir);
+      const valid = validSkills();
+      await writeSkillFiles(valid);
+      revealFile(getSkillsDir());
       setStatus(
         win,
         "pm-chat-skill-status",
@@ -520,6 +541,40 @@ function renderSkillTable(win: Window): void {
     }
   });
 
+  const reloadButton = byId<HTMLButtonElement>(win, "pm-chat-skill-reload");
+  reloadButton?.addEventListener("command", async () => {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = undefined;
+    }
+    await fileWriteChain;
+    const loaded = await loadSkillFiles();
+    if (!loaded) {
+      setStatus(
+        win,
+        "pm-chat-skill-status",
+        t(
+          "chat-skills-files-missing",
+          "技能文件夹不存在，请先点击「打开技能文件夹」",
+        ),
+        false,
+      );
+      return;
+    }
+    skills = loaded;
+    saveSkillRows(skills);
+    draw();
+    setStatus(
+      win,
+      "pm-chat-skill-status",
+      t("chat-skills-files-loaded", "已从 Markdown 重新加载技能", {
+        count: skills.length,
+      }),
+      true,
+    );
+  });
+
+  draw();
   draw();
 }
 
@@ -818,7 +873,7 @@ export async function initPreferencesUI(
 
   populatePresets(win);
   populateJournalFields(win);
-  renderSkillTable(win);
+  await renderSkillTable(win);
 
   bindCheckbox(win, "pm-llm-stream", "llmStream");
   bindCheckbox(win, "pm-llm-disable-thinking", "llmDisableThinking");

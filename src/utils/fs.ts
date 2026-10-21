@@ -19,6 +19,7 @@ type AnyGlobal = typeof globalThis & {
     writeJSON: (path: string, data: unknown) => Promise<void>;
     read: (path: string) => Promise<Uint8Array>;
     write: (path: string, data: Uint8Array) => Promise<void>;
+    getChildren: (path: string) => Promise<string[]>;
     remove: (path: string, options?: { recursive?: boolean }) => Promise<void>;
   };
   Services?: {

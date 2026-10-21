@@ -150,3 +150,6 @@ paperminer-pref-translate-bing-desc = 无需 API Key，使用 Microsoft Edge 的
 paperminer-pref-translate-mymemory-title = MyMemory（免费）
 paperminer-pref-translate-mymemory-desc = 无需 API Key，匿名每日约 5000 字符额度；填写邮箱可提高额度，免费接口可能限流。
 paperminer-pref-translate-mymemory-email = MyMemory 邮箱（可选）
+paperminer-pref-chat-skills-files-desc = 技能以 Markdown 文件保存在 Zotero 数据目录的 paperminer/skills/ 中，每条技能一个 .md 文件；修改后点击「从文件夹重新加载」。
+paperminer-pref-chat-skill-reload =
+    .label = 从文件夹重新加载

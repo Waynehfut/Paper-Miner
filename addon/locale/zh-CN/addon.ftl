@@ -216,3 +216,6 @@ paperminer-journal-cat-level = 榜单
 paperminer-journal-cat-danger = 预警
 paperminer-chat-skills-folder-opened = 已打开技能文件夹
 paperminer-chat-skills-folder-failed = 打开技能文件夹失败：{ $error }
+paperminer-chat-skills-files-loaded = 已从 Markdown 重新加载 { $count } 个技能
+paperminer-chat-skills-files-missing = 技能文件夹不存在，请先点击「打开技能文件夹」
+paperminer-chat-skills-files-save-failed = 写入 Markdown 技能文件失败：{ $error }

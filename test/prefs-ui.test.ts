@@ -261,6 +261,58 @@ describe("PaperMiner template and numeric controls", function () {
       await Zotero.Promise.delay(100);
       assert.equal(rows().length, before, "remove button should delete a row");
 
+      const { getSkillsDir } = await import("../src/modules/chat/skillFiles");
+      const io = (globalThis as any).IOUtils;
+      const skillsDir = getSkillsDir();
+      const originalReveal = Zotero.File.reveal;
+      const revealed: string[] = [];
+      try {
+        (Zotero.File as any).reveal = (path: string) =>
+          revealed.push(String(path));
+        const folderButton = doc.getElementById(
+          "pm-chat-skill-folder",
+        ) as HTMLButtonElement;
+        folderButton.dispatchEvent(
+          new win!.Event("command", { bubbles: true }),
+        );
+        await Zotero.Promise.delay(700);
+        assert.isAbove(revealed.length, 0, "skills folder should be revealed");
+        assert.include(revealed[0], "skills");
+        const children = await io.getChildren(skillsDir);
+        assert.isTrue(
+          children.some((path: string) => /\.md$/.test(path)),
+          "skills should be written as Markdown files",
+        );
+        assert.isFalse(
+          children.some((path: string) => /skills\.json$/.test(path)),
+          "legacy skills.json should be removed",
+        );
+
+        const manual = `${skillsDir}/99-manual-test.md`;
+        await io.writeUTF8(
+          manual,
+          "---\nname: Markdown 测试技能\nglobal: false\n---\n只回答 Markdown 测试。\n",
+        );
+        const reloadButton = doc.getElementById(
+          "pm-chat-skill-reload",
+        ) as HTMLButtonElement;
+        reloadButton.dispatchEvent(
+          new win!.Event("command", { bubbles: true }),
+        );
+        await Zotero.Promise.delay(500);
+        const namesAfterReload = Array.from(
+          doc.querySelectorAll("#pm-chat-skill-table .pm-skill-name"),
+        ).map((input) => (input as HTMLInputElement).value);
+        assert.include(
+          namesAfterReload,
+          "Markdown 测试技能",
+          "reload should load a newly added Markdown skill",
+        );
+        await io.remove(manual);
+      } finally {
+        Zotero.File.reveal = originalReveal;
+      }
+
       for (const id of [
         "pm-journal-cachedays",
         "pm-chat-history",
