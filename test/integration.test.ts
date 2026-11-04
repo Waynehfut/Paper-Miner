@@ -106,7 +106,7 @@ describe("PaperMiner integration", function () {
     const text = body!.textContent || "";
     assert.match(text, /AI (摘要|Summary)/);
     assert.match(text, /(阅读对话|Chat with Paper)/);
-    assert.match(text, /(谷歌他引|Google citations)/);
+    assert.match(text, /(查看引用|View citations)/);
     assert.isNull(
       body!.querySelector('[data-pm-role="journal"]'),
       "journal badges should not be duplicated in the item pane",

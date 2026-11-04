@@ -221,7 +221,7 @@ function buildActions(
     }),
   );
   grid.appendChild(
-    actionButton(doc, "link", t("action-citations", "谷歌他引"), () => {
+    actionButton(doc, "link", t("action-citations", "查看引用"), () => {
       openCitationDialog(item, {
         onSummary: (summary) => onCitationSummary?.(summary),
       });
@@ -258,7 +258,7 @@ function renderCitationSummary(
   row.appendChild(
     htmlEl(doc, "span", {
       class: "pm-citation-summary-label",
-      text: t("citation-title", "谷歌他引"),
+      text: t("citation-title", "引用"),
     }),
   );
   if (summary.status === "ok") {
@@ -328,13 +328,13 @@ async function loadCitationSummary(
     row.appendChild(
       htmlEl(doc, "span", {
         class: "pm-citation-summary-label",
-        text: t("citation-title", "谷歌他引"),
+        text: t("citation-title", "引用"),
       }),
     );
     row.appendChild(
       htmlEl(doc, "span", {
         class: "pm-citation-summary-error",
-        text: t("citation-click-to-load", "点击「谷歌他引」查看"),
+        text: t("citation-click-to-load", "点击「查看引用」加载"),
       }),
     );
   }
@@ -371,8 +371,8 @@ function renderSection(props: SectionArgs): void {
     class: "pm-citation-summary",
     text:
       getPref("citationAutoFetch") !== false
-        ? t("citation-loading-short", "正在查询谷歌他引…")
-        : t("citation-click-to-load", "点击「谷歌他引」查看"),
+        ? t("citation-loading-short", "正在查询引用…")
+        : t("citation-click-to-load", "点击「查看引用」加载"),
   });
   root.appendChild(citationRow);
   root.appendChild(

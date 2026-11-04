@@ -672,6 +672,18 @@ export async function getCitationSummary(
     );
     if (cached) {
       const summary = { ...cached, source: cached.source || "google" };
+      // OpenAlex is the preferred source. Older caches may contain a Google
+      // summary; try OpenAlex once before returning them.
+      if (summary.source !== "google") {
+        rememberCount(item, summary);
+        return summary;
+      }
+      const openAlex = await getOpenAlexSummary(item);
+      if (openAlex) {
+        await pluginCache.set(CACHE_NAMESPACE, `summary:${key}`, openAlex);
+        rememberCount(item, openAlex);
+        return openAlex;
+      }
       rememberCount(item, summary);
       return summary;
     }
@@ -683,6 +695,15 @@ export async function getCitationSummary(
       new CitationError("notfound", "该条目没有 DOI 或标题，无法查询引用"),
     );
   }
+  // Prefer OpenAlex (works without Google Scholar access and supports an
+  // optional API key for higher rate limits).
+  const openAlex = await getOpenAlexSummary(item);
+  if (openAlex) {
+    await pluginCache.set(CACHE_NAMESPACE, `summary:${key}`, openAlex);
+    rememberCount(item, openAlex);
+    return openAlex;
+  }
+
   const query = doi ? `"${doi}"` : title;
   const searchUrl = `${BASE_URL}/scholar?hl=en&q=${encodeURIComponent(query)}`;
   try {
@@ -696,12 +717,6 @@ export async function getCitationSummary(
     }
     const hit = pickBestHit(hits, item);
     if (!hit) {
-      const fallback = await getOpenAlexSummary(item);
-      if (fallback) {
-        await pluginCache.set(CACHE_NAMESPACE, `summary:${key}`, fallback);
-        rememberCount(item, fallback);
-        return fallback;
-      }
       return {
         status: "notfound",
         count: 0,
@@ -718,39 +733,16 @@ export async function getCitationSummary(
     rememberCount(item, summary);
     return summary;
   } catch (error) {
-    log(
-      "Google Scholar citation lookup failed, trying OpenAlex:",
-      errorToString(error),
-    );
-    const fallback = await getOpenAlexSummary(item);
-    if (fallback) {
-      await pluginCache.set(CACHE_NAMESPACE, `summary:${key}`, fallback);
-      rememberCount(item, fallback);
-      return fallback;
-    }
+    log("Google Scholar citation lookup failed:", errorToString(error));
     return errorSummary(error, searchUrl);
   }
 }
 
-/** Fetch the citing-works list (up to 30 entries, 3 Scholar pages). */
-export async function getCitationDetails(
+async function getGoogleDetailsFromSummary(
   item: Zotero.Item,
-  options: { force?: boolean } = {},
+  summary: CitationSummary,
+  options: { force?: boolean },
 ): Promise<CitationDetails> {
-  const summary = await getCitationSummary(item, options);
-  if (summary.status !== "ok" || !summary.count || !summary.clusterId) {
-    return { ...summary, items: [] };
-  }
-  if (summary.source === "openalex") {
-    const details = await getOpenAlexDetails(summary, options);
-    if (details.status === "ok" && details.items.length) return details;
-    const fallback = await getOpenCitationsDetails(summary, item, options);
-    if (fallback) return fallback;
-    return unavailableDetails(
-      summary,
-      details.error || "OpenAlex 暂时无法返回引用列表",
-    );
-  }
   const cacheKey = `details:${summary.source}:${summary.clusterId}:${summary.count}`;
   if (!options.force) {
     const cached = await pluginCache.get<CitationDetails>(
@@ -760,7 +752,6 @@ export async function getCitationDetails(
     );
     if (cached) return cached;
   }
-
   const items: CitationItem[] = [];
   const seen = new Set<string>();
   let partial = false;
@@ -785,8 +776,6 @@ export async function getCitationDetails(
       if (!pageItems.length) break;
     } catch (error) {
       if (page === 0) {
-        const fallback = await getOpenCitationsDetails(summary, item, options);
-        if (fallback) return fallback;
         return unavailableDetails(
           summary,
           error instanceof CitationError
@@ -809,4 +798,62 @@ export async function getCitationDetails(
     await pluginCache.set(CACHE_NAMESPACE, cacheKey, details);
   }
   return details;
+}
+
+async function getGoogleDetailsForItem(
+  item: Zotero.Item,
+  options: { force?: boolean },
+): Promise<CitationDetails | null> {
+  const doi = getItemDOI(item);
+  const title = getItemTitle(item);
+  if (!doi && !title) return null;
+  const query = doi ? `"${doi}"` : title;
+  const searchUrl = `${BASE_URL}/scholar?hl=en&q=${encodeURIComponent(query)}`;
+  try {
+    let hits = parseScholarSearch(await fetchScholar(searchUrl));
+    if (!hits.length && doi && title) {
+      hits = parseScholarSearch(
+        await fetchScholar(
+          `${BASE_URL}/scholar?hl=en&q=${encodeURIComponent(title)}`,
+        ),
+      );
+    }
+    const hit = pickBestHit(hits, item);
+    if (!hit) return null;
+    return await getGoogleDetailsFromSummary(
+      item,
+      summaryFromHit(hit, item, searchUrl),
+      options,
+    );
+  } catch (error) {
+    log("Google citation list fallback failed:", errorToString(error));
+    return null;
+  }
+}
+
+/** Fetch the citing-works list (up to 30 entries, 3 Scholar pages). */
+export async function getCitationDetails(
+  item: Zotero.Item,
+  options: { force?: boolean } = {},
+): Promise<CitationDetails> {
+  const summary = await getCitationSummary(item, options);
+  if (summary.status !== "ok" || !summary.count || !summary.clusterId) {
+    return { ...summary, items: [] };
+  }
+  if (summary.source === "openalex") {
+    const details = await getOpenAlexDetails(summary, options);
+    if (details.status === "ok" && details.items.length) return details;
+    const google = await getGoogleDetailsForItem(item, options);
+    if (google?.items.length) return google;
+    const fallback = await getOpenCitationsDetails(summary, item, options);
+    if (fallback) return fallback;
+    return unavailableDetails(
+      summary,
+      details.error || "OpenAlex 暂时无法返回引用列表",
+    );
+  }
+  if (summary.source === "google") {
+    return getGoogleDetailsFromSummary(item, summary, options);
+  }
+  return { ...summary, items: [] };
 }

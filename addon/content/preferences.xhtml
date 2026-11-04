@@ -249,25 +249,6 @@
           data-l10n-id="paperminer-pref-journal-showcolumn"
         ></checkbox>
         <checkbox
-          id="pm-journal-citation-auto"
-          data-l10n-id="paperminer-pref-journal-citation-auto"
-        ></checkbox>
-        <hbox align="center">
-          <label
-            data-l10n-id="paperminer-pref-citation-openalex-key"
-            control="pm-citation-openalex-key"
-          ></label>
-          <html:input
-            id="pm-citation-openalex-key"
-            class="pm-pref-input"
-            type="password"
-            flex="1"
-          ></html:input>
-        </hbox>
-        <description
-          data-l10n-id="paperminer-pref-citation-openalex-key-desc"
-        ></description>
-        <checkbox
           id="pm-journal-showbanner"
           data-l10n-id="paperminer-pref-journal-showbanner"
         ></checkbox>
@@ -277,6 +258,36 @@
           data-l10n-id="paperminer-pref-clear-cache"
         ></button>
       </hbox>
+    </groupbox>
+
+    <!-- ============================ 引用统计 ============================ -->
+    <groupbox aria-labelledby="paperminer-pref-citations-title">
+      <label>
+        <html:h2
+          id="paperminer-pref-citations-title"
+          data-l10n-id="paperminer-pref-citations-title"
+        ></html:h2>
+      </label>
+      <description data-l10n-id="paperminer-pref-citations-desc"></description>
+      <checkbox
+        id="pm-journal-citation-auto"
+        data-l10n-id="paperminer-pref-journal-citation-auto"
+      ></checkbox>
+      <hbox align="center">
+        <label
+          data-l10n-id="paperminer-pref-citation-openalex-key"
+          control="pm-citation-openalex-key"
+        ></label>
+        <html:input
+          id="pm-citation-openalex-key"
+          class="pm-pref-input"
+          type="password"
+          flex="1"
+        ></html:input>
+      </hbox>
+      <description
+        data-l10n-id="paperminer-pref-citation-openalex-key-desc"
+      ></description>
     </groupbox>
 
     <!-- ============================ AI 摘要 ============================ -->

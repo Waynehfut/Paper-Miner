@@ -336,7 +336,7 @@ export async function registerCitationColumn(): Promise<void> {
     await hydrateCitationCounts();
     const key = await Zotero.ItemTreeManager.registerColumn({
       dataKey: CITATION_COLUMN_KEY,
-      label: t("citation-column-label", "谷歌引用数"),
+      label: t("citation-column-label", "引用数"),
       pluginID: config.addonID,
       enabledTreeIDs: ["main"],
       width: "86",

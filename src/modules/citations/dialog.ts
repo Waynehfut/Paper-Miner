@@ -62,7 +62,7 @@ export function openCitationDialog(
   const dialog = el(doc, "section", "pm-citation-dialog");
   dialog.setAttribute("role", "dialog");
   dialog.setAttribute("aria-modal", "true");
-  dialog.setAttribute("aria-label", t("citation-title", "谷歌他引"));
+  dialog.setAttribute("aria-label", t("citation-title", "引用"));
 
   const header = el(doc, "header", "pm-citation-dialog-head");
   const heading = el(doc, "div", "pm-citation-dialog-heading");
@@ -70,7 +70,7 @@ export function openCitationDialog(
     doc,
     "h2",
     "pm-citation-dialog-title",
-    t("citation-title", "谷歌他引"),
+    t("citation-title", "引用"),
   );
   const subtitle = el(
     doc,

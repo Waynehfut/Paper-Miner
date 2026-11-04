@@ -216,6 +216,8 @@ export type FluentMessageId =
   | 'paperminer-pref-chat-title'
   | 'paperminer-pref-citation-openalex-key'
   | 'paperminer-pref-citation-openalex-key-desc'
+  | 'paperminer-pref-citations-desc'
+  | 'paperminer-pref-citations-title'
   | 'paperminer-pref-clear-cache'
   | 'paperminer-pref-deepl-endpoint'
   | 'paperminer-pref-deepl-key'
