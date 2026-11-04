@@ -306,3 +306,46 @@
   line-height: 1.45;
   user-select: text;
 }
+
+/* Citation settings: keep the checkbox, key row and help text stacked. */
+#paperminer-prefpane .pm-citations-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#paperminer-prefpane .pm-citations-settings > checkbox {
+  align-self: flex-start;
+  margin: 2px 0;
+}
+
+#paperminer-prefpane .pm-citations-settings .pm-citations-key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+}
+
+#paperminer-prefpane
+  .pm-citations-settings
+  .pm-citations-key-row
+  label[control] {
+  flex: 0 0 190px;
+  min-width: 190px;
+  text-align: right;
+}
+
+#paperminer-prefpane .pm-citations-settings #pm-citation-openalex-key {
+  flex: 1 1 auto;
+  min-width: 260px;
+  height: 26px;
+  box-sizing: border-box;
+}
+
+#paperminer-prefpane .pm-citations-settings description {
+  margin: 0;
+  line-height: 1.45;
+}

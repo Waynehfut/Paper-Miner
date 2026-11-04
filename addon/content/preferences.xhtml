@@ -269,25 +269,28 @@
         ></html:h2>
       </label>
       <description data-l10n-id="paperminer-pref-citations-desc"></description>
-      <checkbox
-        id="pm-journal-citation-auto"
-        data-l10n-id="paperminer-pref-journal-citation-auto"
-      ></checkbox>
-      <hbox align="center">
-        <label
-          data-l10n-id="paperminer-pref-citation-openalex-key"
-          control="pm-citation-openalex-key"
-        ></label>
-        <html:input
-          id="pm-citation-openalex-key"
-          class="pm-pref-input"
-          type="password"
-          flex="1"
-        ></html:input>
-      </hbox>
-      <description
-        data-l10n-id="paperminer-pref-citation-openalex-key-desc"
-      ></description>
+      <vbox id="pm-citations-settings" class="pm-citations-settings">
+        <checkbox
+          id="pm-journal-citation-auto"
+          data-l10n-id="paperminer-pref-journal-citation-auto"
+        ></checkbox>
+        <hbox align="center" class="pm-citations-key-row">
+          <label
+            data-l10n-id="paperminer-pref-citation-openalex-key"
+            control="pm-citation-openalex-key"
+          ></label>
+          <html:input
+            id="pm-citation-openalex-key"
+            class="pm-pref-input"
+            type="password"
+            flex="1"
+            placeholder="留空则使用 OpenAlex 公共额度"
+          ></html:input>
+        </hbox>
+        <description
+          data-l10n-id="paperminer-pref-citation-openalex-key-desc"
+        ></description>
+      </vbox>
     </groupbox>
 
     <!-- ============================ AI 摘要 ============================ -->

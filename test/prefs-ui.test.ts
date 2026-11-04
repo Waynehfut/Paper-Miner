@@ -313,6 +313,34 @@ describe("PaperMiner template and numeric controls", function () {
         Zotero.File.reveal = originalReveal;
       }
 
+      const citationSettings = doc.getElementById(
+        "pm-citations-settings",
+      ) as HTMLElement;
+      const citationAuto = doc.getElementById(
+        "pm-journal-citation-auto",
+      ) as HTMLElement;
+      const openAlexKey = doc.getElementById(
+        "pm-citation-openalex-key",
+      ) as HTMLInputElement;
+      assert.ok(citationSettings, "citation settings group should exist");
+      assert.ok(citationAuto, "citation auto checkbox should exist");
+      assert.ok(openAlexKey, "OpenAlex key input should exist");
+      assert.isAtLeast(
+        citationSettings.getBoundingClientRect().width,
+        400,
+        "citation settings should span the pane",
+      );
+      assert.isAtLeast(
+        openAlexKey.getBoundingClientRect().width,
+        260,
+        "OpenAlex key input should be readable",
+      );
+      assert.isBelow(
+        citationAuto.getBoundingClientRect().bottom,
+        openAlexKey.getBoundingClientRect().top,
+        "citation checkbox and key row should be stacked vertically",
+      );
+
       for (const id of [
         "pm-journal-cachedays",
         "pm-chat-history",
