@@ -149,7 +149,12 @@ export function openCitationDialog(
     const sourceNote =
       summary.status === "ok" && summary.source === "openalex"
         ? t("citation-source-openalex", "OpenAlex（Google Scholar 暂时不可用）")
-        : "";
+        : summary.status === "ok" && summary.source === "opencitations"
+          ? t(
+              "citation-source-opencitations",
+              "OpenCitations（Google Scholar / OpenAlex 暂时不可用）",
+            )
+          : "";
     subtitle.textContent = sourceNote ? `${count} · ${sourceNote}` : count;
     options.onSummary?.(summary);
     if (summary.status === "ok") {
@@ -157,7 +162,9 @@ export function openCitationDialog(
       sourceButton.textContent =
         summary.source === "openalex"
           ? t("citation-open-openalex", "在 OpenAlex 查看全部")
-          : t("citation-open-scholar", "在 Google Scholar 查看全部");
+          : summary.source === "opencitations"
+            ? t("citation-open-opencitations", "在 OpenCitations 查看")
+            : t("citation-open-scholar", "在 Google Scholar 查看全部");
       sourceButton.dataset.url =
         summary.publicUrl || summary.citesUrl || summary.sourceUrl;
     } else if (summary.sourceUrl) {
@@ -175,12 +182,16 @@ export function openCitationDialog(
   const renderDetails = (details: CitationDetails) => {
     renderSummary(details);
     body.replaceChildren();
-    if (details.status !== "ok") {
+    if (details.status !== "ok" || details.error) {
+      const message =
+        details.status === "ok" && details.error
+          ? `${t("citation-list-unavailable", "引用列表暂时无法加载")}：${details.error}`
+          : details.error || t("citation-error", "获取引用失败");
       const error = el(
         doc,
         "div",
         "pm-citation-empty pm-citation-error",
-        details.error || t("citation-error", "获取引用失败"),
+        message,
       );
       body.appendChild(error);
       const retry = el(

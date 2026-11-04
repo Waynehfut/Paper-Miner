@@ -25,6 +25,7 @@ pref(
 pref("journalCacheDays", 30);
 pref("journalShowSection", true);
 pref("citationAutoFetch", true);
+pref("citationOpenAlexApiKey", "");
 pref("journalShowColumn", true);
 pref("journalShowReaderBanner", true);
 

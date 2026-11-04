@@ -270,15 +270,23 @@ function renderCitationSummary(
         }),
       }),
     );
-    if (summary.source === "openalex") {
+    if (summary.source !== "google") {
+      const sourceLabel =
+        summary.source === "opencitations" ? "OpenCitations" : "OpenAlex";
       row.appendChild(
         htmlEl(doc, "span", {
           class: "pm-citation-summary-source",
-          text: "OpenAlex",
-          title: t(
-            "citation-source-openalex",
-            "OpenAlex（Google Scholar 暂时不可用）",
-          ),
+          text: sourceLabel,
+          title:
+            summary.source === "opencitations"
+              ? t(
+                  "citation-source-opencitations",
+                  "OpenCitations（Google Scholar / OpenAlex 暂时不可用）",
+                )
+              : t(
+                  "citation-source-openalex",
+                  "OpenAlex（Google Scholar 暂时不可用）",
+                ),
         }),
       );
     }

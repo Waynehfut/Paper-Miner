@@ -241,3 +241,6 @@ paperminer-citation-column-label = 谷歌引用数
 paperminer-citation-column-title = Google Scholar 引用数
 paperminer-citation-open-scholar-search = 在 Google Scholar 搜索
 paperminer-citation-timeout = 获取引用超时。Google Scholar 可能正在限流，请稍后重试。
+paperminer-citation-source-opencitations = OpenCitations（Google Scholar / OpenAlex 暂时不可用）
+paperminer-citation-open-opencitations = 在 OpenCitations 查看
+paperminer-citation-list-unavailable = 引用列表暂时无法加载

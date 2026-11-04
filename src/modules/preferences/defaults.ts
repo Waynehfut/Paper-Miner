@@ -28,6 +28,7 @@ export const DEFAULT_PREFS: Record<string, string | number | boolean> = {
   journalCacheDays: 30,
   journalShowSection: true,
   citationAutoFetch: true,
+  citationOpenAlexApiKey: "",
   journalShowColumn: true,
   journalShowReaderBanner: true,
 

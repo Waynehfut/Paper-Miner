@@ -26,6 +26,7 @@ declare namespace _ZoteroTypes {
       "journalCacheDays": number;
       "journalShowSection": boolean;
       "citationAutoFetch": boolean;
+      "citationOpenAlexApiKey": string;
       "journalShowColumn": boolean;
       "journalShowReaderBanner": boolean;
       "summaryAuto": boolean;

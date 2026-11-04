@@ -155,3 +155,5 @@ paperminer-pref-chat-skill-reload =
     .label = Reload from folder
 paperminer-pref-journal-citation-auto =
     .label = Auto-fetch Google citation count
+paperminer-pref-citation-openalex-key = OpenAlex API key (optional)
+paperminer-pref-citation-openalex-key-desc = Add an OpenAlex API key if you hit 429 rate limits; leave empty for the shared public quota.

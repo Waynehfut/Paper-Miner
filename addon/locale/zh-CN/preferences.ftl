@@ -155,3 +155,5 @@ paperminer-pref-chat-skill-reload =
     .label = 从文件夹重新加载
 paperminer-pref-journal-citation-auto =
     .label = 自动查询谷歌他引数
+paperminer-pref-citation-openalex-key = OpenAlex API Key（可选）
+paperminer-pref-citation-openalex-key-desc = 遇到 OpenAlex 429 时可填写 API Key 提高额度；留空则使用公共额度。

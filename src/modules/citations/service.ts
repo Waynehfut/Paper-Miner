@@ -11,9 +11,10 @@ import { createAbortController } from "../../utils/abort";
 import { pluginCache } from "../../utils/cache";
 import { getItemDOI, getItemTitle } from "../../utils/item";
 import { errorToString, log } from "../../utils/log";
+import { getPref } from "../../utils/prefs";
 
 export type CitationStatus = "ok" | "notfound" | "error";
-export type CitationSource = "google" | "openalex";
+export type CitationSource = "google" | "openalex" | "opencitations";
 
 export interface CitationSummary {
   status: CitationStatus;
@@ -321,11 +322,18 @@ interface OpenAlexWork {
   };
 }
 
+function openAlexURL(url: string): string {
+  const target = new URL(url);
+  const apiKey = String(getPref("citationOpenAlexApiKey") || "").trim();
+  if (apiKey) target.searchParams.set("api_key", apiKey);
+  return target.toString();
+}
+
 async function fetchOpenAlexJSON(url: string): Promise<any> {
   const controller = createAbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
   try {
-    const response = await fetch(url, {
+    const response = await fetch(openAlexURL(url), {
       method: "GET",
       headers: { Accept: "application/json" },
       signal: controller.signal,
@@ -488,6 +496,163 @@ export async function getCachedCitationSummary(
   return summary;
 }
 
+/* ------------------------------------------------------------------ */
+/* OpenCitations fallback (citation list only)                         */
+/* ------------------------------------------------------------------ */
+
+async function fetchOpenCitationsJSON(url: string): Promise<any> {
+  const controller = createAbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new CitationError(
+        "network",
+        `OpenCitations 返回 HTTP ${response.status}`,
+      );
+    }
+    return await response.json();
+  } catch (error) {
+    if (error instanceof CitationError) throw error;
+    throw new CitationError(
+      "network",
+      `无法访问 OpenCitations：${errorToString(error)}`,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function cleanOpenCitationsMeta(value: string): string {
+  return String(value || "")
+    .replace(/\[[^\]]*\]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function openCitationsMeta(record: any): string {
+  const authors = String(record?.author || "")
+    .split(";")
+    .map(cleanOpenCitationsMeta)
+    .filter(Boolean)
+    .slice(0, 3);
+  const venue = cleanOpenCitationsMeta(String(record?.venue || ""));
+  const year = String(record?.pub_date || "").slice(0, 4);
+  return [...authors, venue, year].filter(Boolean).join(" · ");
+}
+
+async function mapLimit<T, R>(
+  values: T[],
+  limit: number,
+  task: (value: T) => Promise<R>,
+): Promise<R[]> {
+  const output: R[] = [];
+  let index = 0;
+  const workers = Array.from(
+    { length: Math.min(limit, values.length) },
+    async () => {
+      while (index < values.length) {
+        const current = index;
+        index += 1;
+        output[current] = await task(values[current]);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return output;
+}
+
+async function getOpenCitationsDetails(
+  summary: CitationSummary,
+  item: Zotero.Item,
+  options: { force?: boolean },
+): Promise<CitationDetails | null> {
+  const doi = getItemDOI(item);
+  if (!doi) return null;
+  const cacheKey = `details:opencitations:${doi}:${summary.count}`;
+  if (!options.force) {
+    const cached = await pluginCache.get<CitationDetails>(
+      CACHE_NAMESPACE,
+      cacheKey,
+      CACHE_TTL_DAYS,
+    );
+    if (cached) return cached;
+  }
+  try {
+    const refs = await fetchOpenCitationsJSON(
+      `https://api.opencitations.net/index/v2/citations/doi:${encodeURIComponent(
+        doi,
+      )}`,
+    );
+    const citingDois = Array.from(
+      new Set(
+        (Array.isArray(refs) ? refs : [])
+          .map((ref: any) => {
+            const match = /(?:^|\s)doi:([^\s]+)/i.exec(
+              String(ref?.citing || ""),
+            );
+            return match?.[1]?.trim() || "";
+          })
+          .filter(Boolean),
+      ),
+    ).slice(0, MAX_ITEMS);
+    if (!citingDois.length) return null;
+    const rows = await mapLimit(citingDois, 6, async (citingDoi) => {
+      let record: any = null;
+      try {
+        const data = await fetchOpenCitationsJSON(
+          `https://api.opencitations.net/meta/v1/metadata/doi:${encodeURIComponent(
+            citingDoi,
+          )}`,
+        );
+        record = Array.isArray(data) ? data[0] : data;
+      } catch {
+        record = null;
+      }
+      return {
+        title: String(record?.title || "").trim() || `DOI ${citingDoi}`,
+        url: `https://doi.org/${citingDoi}`,
+        meta: openCitationsMeta(record) || `DOI ${citingDoi}`,
+      };
+    });
+    const details: CitationDetails = {
+      ...summary,
+      source: "opencitations",
+      citesUrl: summary.citesUrl,
+      publicUrl: `https://opencitations.net/index/v2/citations/doi:${encodeURIComponent(
+        doi,
+      )}`,
+      fetchedAt: Date.now(),
+      items: rows.filter((row) => row.title && row.url),
+      ...(summary.count > rows.length ? { partial: true } : {}),
+    };
+    if (details.items.length) {
+      await pluginCache.set(CACHE_NAMESPACE, cacheKey, details);
+    }
+    return details;
+  } catch (error) {
+    log("OpenCitations citation fallback failed:", errorToString(error));
+    return null;
+  }
+}
+
+function unavailableDetails(
+  summary: CitationSummary,
+  detail: string,
+): CitationDetails {
+  return {
+    ...summary,
+    status: "ok",
+    items: [],
+    error: detail,
+    fetchedAt: Date.now(),
+  };
+}
+
 /** Search Google Scholar and return the cited-by count for an item. */
 export async function getCitationSummary(
   item: Zotero.Item,
@@ -577,7 +742,14 @@ export async function getCitationDetails(
     return { ...summary, items: [] };
   }
   if (summary.source === "openalex") {
-    return getOpenAlexDetails(summary, options);
+    const details = await getOpenAlexDetails(summary, options);
+    if (details.status === "ok" && details.items.length) return details;
+    const fallback = await getOpenCitationsDetails(summary, item, options);
+    if (fallback) return fallback;
+    return unavailableDetails(
+      summary,
+      details.error || "OpenAlex 暂时无法返回引用列表",
+    );
   }
   const cacheKey = `details:${summary.source}:${summary.clusterId}:${summary.count}`;
   if (!options.force) {
@@ -613,15 +785,14 @@ export async function getCitationDetails(
       if (!pageItems.length) break;
     } catch (error) {
       if (page === 0) {
-        return {
-          ...summary,
-          status: "error",
-          error:
-            error instanceof CitationError
-              ? error.message
-              : `获取引用列表失败：${errorToString(error)}`,
-          items: [],
-        };
+        const fallback = await getOpenCitationsDetails(summary, item, options);
+        if (fallback) return fallback;
+        return unavailableDetails(
+          summary,
+          error instanceof CitationError
+            ? error.message
+            : `获取引用列表失败：${errorToString(error)}`,
+        );
       }
       partial = true;
       break;

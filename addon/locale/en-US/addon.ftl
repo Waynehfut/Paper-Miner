@@ -118,3 +118,6 @@ paperminer-citation-column-label = Google citations
 paperminer-citation-column-title = Google Scholar citations
 paperminer-citation-open-scholar-search = Search on Google Scholar
 paperminer-citation-timeout = Citation request timed out. Google Scholar may be rate-limiting; try again later.
+paperminer-citation-source-opencitations = OpenCitations (Google Scholar / OpenAlex temporarily unavailable)
+paperminer-citation-open-opencitations = View on OpenCitations
+paperminer-citation-list-unavailable = The citation list is temporarily unavailable

@@ -3,6 +3,7 @@
 import { assert } from "chai";
 import {
   getCitationCountSync,
+  getCitationDetails,
   getCitationSummary,
   parseScholarCitations,
   parseScholarSearch,
@@ -83,6 +84,134 @@ describe("citation fallback", function () {
       assert.equal(summary.count, 1234);
       assert.include(summary.citesUrl, "openalex.org");
       assert.equal(getCitationCountSync(item), 1234);
+    } finally {
+      Zotero.HTTP.request = originalHTTP;
+      (globalThis as any).fetch = originalFetch;
+    }
+  });
+});
+
+describe("OpenCitations fallback", function () {
+  it("builds a citation list when OpenAlex details are rate-limited", async function () {
+    const originalHTTP = Zotero.HTTP.request;
+    const originalFetch = (globalThis as any).fetch;
+    try {
+      (Zotero.HTTP as any).request = async () => {
+        throw new Error("HTTP 429");
+      };
+      (globalThis as any).fetch = async (url: string) => {
+        if (url.includes("filter=cites")) {
+          return new Response("rate limited", { status: 429 });
+        }
+        if (url.includes("/index/v2/citations/")) {
+          return new Response(
+            JSON.stringify([
+              { citing: "omid:br/1 doi:10.1234/citing-paper openalex:W9" },
+            ]),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }
+        if (url.includes("/meta/v1/metadata/")) {
+          return new Response(
+            JSON.stringify([
+              {
+                title: "Citing Paper",
+                author: "A Author [orcid:1]; B Author [orcid:2]",
+                venue: "Journal [issn:1234]",
+                pub_date: "2025-01",
+              },
+            ]),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            id: "https://openalex.org/W123",
+            display_name: "Attention Is All You Need",
+            cited_by_count: 1234,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      };
+      const item = {
+        id: 2,
+        isRegularItem: () => true,
+        getField: (field: string) =>
+          field === "DOI"
+            ? "10.48550/arXiv.1706.03762"
+            : field === "title"
+              ? "Attention is all you need"
+              : "",
+        getDisplayTitle: () => "Attention is all you need",
+      } as any;
+      let details: any;
+      try {
+        details = await getCitationDetails(item, { force: true });
+      } catch (error) {
+        await (globalThis as any).IOUtils.writeUTF8(
+          "/tmp/oc-details-error.txt",
+          JSON.stringify({
+            name: (error as any)?.name,
+            message: (error as any)?.message,
+            code: (error as any)?.code,
+            stack: (error as any)?.stack,
+          }),
+        );
+        throw error;
+      }
+      await (globalThis as any).IOUtils.writeUTF8(
+        "/tmp/oc-details.json",
+        JSON.stringify(details, null, 2),
+      );
+      assert.equal(details.status, "ok", JSON.stringify(details.error));
+      assert.equal(details.source, "opencitations");
+      assert.isAbove(details.items.length, 0);
+      assert.equal(details.items[0].title, "Citing Paper");
+      assert.include(details.items[0].url, "doi.org/10.1234/citing-paper");
+    } finally {
+      Zotero.HTTP.request = originalHTTP;
+      (globalThis as any).fetch = originalFetch;
+    }
+  });
+});
+
+describe("partial citation details", function () {
+  it("keeps the known count when every citation-list source fails", async function () {
+    const originalHTTP = Zotero.HTTP.request;
+    const originalFetch = (globalThis as any).fetch;
+    try {
+      (Zotero.HTTP as any).request = async () => {
+        throw new Error("HTTP 429");
+      };
+      (globalThis as any).fetch = async (url: string) => {
+        if (url.includes("filter=cites") || url.includes("opencitations")) {
+          return new Response("rate limited", { status: 429 });
+        }
+        return new Response(
+          JSON.stringify({
+            id: "https://openalex.org/W123",
+            display_name: "Attention Is All You Need",
+            cited_by_count: 1234,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      };
+      const item = {
+        id: 3,
+        isRegularItem: () => true,
+        getField: (field: string) =>
+          field === "DOI"
+            ? "10.48550/arXiv.1706.03762"
+            : field === "title"
+              ? "Attention is all you need"
+              : "",
+        getDisplayTitle: () => "Attention is all you need",
+      } as any;
+      const details = await getCitationDetails(item, { force: true });
+      assert.equal(details.status, "ok");
+      assert.equal(details.count, 1234);
+      assert.equal(details.items.length, 0);
+      assert.include(details.error || "", "429");
     } finally {
       Zotero.HTTP.request = originalHTTP;
       (globalThis as any).fetch = originalFetch;
