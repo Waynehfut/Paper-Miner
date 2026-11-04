@@ -5,6 +5,10 @@ import {
   prefetchJournalRanksByPublication,
 } from "../journal/service";
 import { getItemPublication, isPaperItem } from "../../utils/item";
+import {
+  getCitationCountSync,
+  hydrateCitationCounts,
+} from "../citations/service";
 import { t } from "../../utils/i18n";
 import { errorToString, log } from "../../utils/log";
 import { getPref } from "../../utils/prefs";
@@ -12,6 +16,7 @@ import { getPref } from "../../utils/prefs";
 /** Item tree column showing journal rank / warning. Owned by journal UI module. */
 
 export const JOURNAL_COLUMN_KEY = "paperminerJournalRank";
+export const CITATION_COLUMN_KEY = "paperminerGoogleCitations";
 
 const SELECTION_HOOK_MARK = "__paperminerSelectionHook";
 const MAX_PREFETCH_PER_FLUSH = 8;
@@ -20,6 +25,7 @@ const PREFETCH_DEBOUNCE_MS = 700;
 const REFRESH_THROTTLE_MS = 900;
 
 let registeredDataKey: string | false | null = null;
+let registeredCitationKey: string | false | null = null;
 const pendingNames = new Map<string, string>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -89,6 +95,37 @@ function applyRefresh(): void {
   } catch (error) {
     log("refreshJournalColumn failed:", errorToString(error));
   }
+}
+
+function citationDataProvider(item: Zotero.Item): string {
+  try {
+    const ref = item as unknown as
+      | { isRegularItem?: () => boolean }
+      | null
+      | undefined;
+    if (!ref || typeof ref.isRegularItem !== "function") return "";
+    if (!item.isRegularItem() || !isPaperItem(item)) return "";
+    const count = getCitationCountSync(item);
+    return count === undefined ? "" : String(count);
+  } catch {
+    return "";
+  }
+}
+
+function renderCitationCell(
+  _index: number,
+  data: string,
+  column: { className?: string },
+  _isFirstColumn: boolean,
+  doc: Document,
+): HTMLElement {
+  const cell = htmlEl(doc, "span", {
+    class: `cell ${column?.className || ""} pm-citation-column`.trim(),
+    title: data ? t("citation-column-title", "Google Scholar 引用数") : "",
+    text: data || "",
+  });
+  if (!data) cell.classList.add("pm-citation-column-empty");
+  return cell;
 }
 
 /* ------------------------------------------------------------------ */
@@ -291,9 +328,59 @@ export async function unregisterJournalColumn(): Promise<void> {
   pendingNames.clear();
 }
 
+/** Register the optional Google Scholar citation count column. */
+export async function registerCitationColumn(): Promise<void> {
+  if (registeredCitationKey) return;
+  if (!Zotero.ItemTreeManager?.registerColumn) return;
+  try {
+    await hydrateCitationCounts();
+    const key = await Zotero.ItemTreeManager.registerColumn({
+      dataKey: CITATION_COLUMN_KEY,
+      label: t("citation-column-label", "谷歌引用数"),
+      pluginID: config.addonID,
+      enabledTreeIDs: ["main"],
+      width: "86",
+      minWidth: 56,
+      showInColumnPicker: true,
+      zoteroPersist: ["width", "hidden", "sortDirection"],
+      dataProvider: citationDataProvider,
+      renderCell: renderCitationCell,
+    });
+    if (!key) {
+      log("registerCitationColumn returned false");
+      return;
+    }
+    registeredCitationKey = key;
+    scheduleRefresh();
+  } catch (error) {
+    log("registerCitationColumn failed:", errorToString(error));
+  }
+}
+
+export async function unregisterCitationColumn(): Promise<void> {
+  if (registeredCitationKey) {
+    try {
+      await Zotero.ItemTreeManager.unregisterColumn(registeredCitationKey);
+    } catch (error) {
+      log("unregisterCitationColumn failed:", errorToString(error));
+    }
+    registeredCitationKey = null;
+  }
+}
+
+/** Refresh citation cells after a summary is fetched. */
+export function refreshCitationColumn(): void {
+  scheduleRefresh();
+}
+
 /** Refresh the column (throttled). Safe to call from any module. */
 export function refreshJournalColumn(): void {
   scheduleRefresh();
 }
 
-export const __testing = { dataProvider, renderCell };
+export const __testing = {
+  dataProvider,
+  renderCell,
+  citationDataProvider,
+  renderCitationCell,
+};

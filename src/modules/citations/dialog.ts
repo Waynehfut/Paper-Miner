@@ -160,6 +160,15 @@ export function openCitationDialog(
           : t("citation-open-scholar", "在 Google Scholar 查看全部");
       sourceButton.dataset.url =
         summary.publicUrl || summary.citesUrl || summary.sourceUrl;
+    } else if (summary.sourceUrl) {
+      // Even when both data sources are rate-limited, keep a way out to the
+      // Scholar search page instead of leaving the dialog with no action.
+      sourceButton.hidden = false;
+      sourceButton.textContent = t(
+        "citation-open-scholar-search",
+        "在 Google Scholar 搜索",
+      );
+      sourceButton.dataset.url = summary.sourceUrl;
     }
   };
 
@@ -174,17 +183,15 @@ export function openCitationDialog(
         details.error || t("citation-error", "获取引用失败"),
       );
       body.appendChild(error);
-      if (details.sourceUrl) {
-        const retry = el(
-          doc,
-          "button",
-          "pm-citation-retry",
-          t("citation-retry", "重试"),
-        );
-        retry.type = "button";
-        retry.addEventListener("click", () => void load(true));
-        body.appendChild(retry);
-      }
+      const retry = el(
+        doc,
+        "button",
+        "pm-citation-retry",
+        t("citation-retry", "重试"),
+      );
+      retry.type = "button";
+      retry.addEventListener("click", () => void load(true));
+      body.appendChild(retry);
       return;
     }
     if (!details.items.length) {
@@ -238,14 +245,34 @@ export function openCitationDialog(
     }
   };
 
+  let loadSequence = 0;
   const load = async (force = false) => {
+    const sequence = ++loadSequence;
     renderLoading();
+    const timeout = setTimeout(() => {
+      if (disposed || sequence !== loadSequence) return;
+      renderDetails({
+        status: "error",
+        count: 0,
+        clusterId: "",
+        citesUrl: "",
+        title: "",
+        sourceUrl: "",
+        source: "google",
+        fetchedAt: Date.now(),
+        error: t(
+          "citation-timeout",
+          "获取引用超时。Google Scholar 可能正在限流，请稍后重试。",
+        ),
+        items: [],
+      });
+    }, 45_000);
     try {
       const details = await getCitationDetails(item, { force });
-      if (disposed) return;
+      if (disposed || sequence !== loadSequence) return;
       renderDetails(details);
     } catch (error) {
-      if (disposed) return;
+      if (disposed || sequence !== loadSequence) return;
       renderDetails({
         status: "error",
         count: 0,
@@ -258,6 +285,8 @@ export function openCitationDialog(
         error: String((error as Error)?.message || error),
         items: [],
       });
+    } finally {
+      clearTimeout(timeout);
     }
   };
 

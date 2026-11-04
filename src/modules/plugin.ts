@@ -20,7 +20,9 @@ import {
   unregisterReaderContextMenu,
 } from "./ui/readerContextMenu";
 import {
+  registerCitationColumn,
   registerJournalColumn,
+  unregisterCitationColumn,
   unregisterJournalColumn,
 } from "./ui/treeColumn";
 import {
@@ -46,6 +48,11 @@ export async function initPaperMiner(): Promise<void> {
     await registerJournalColumn();
   } catch (error) {
     log("registerJournalColumn failed", error);
+  }
+  try {
+    await registerCitationColumn();
+  } catch (error) {
+    log("registerCitationColumn failed", error);
   }
   try {
     registerReaderBanner();
@@ -85,6 +92,7 @@ export async function shutdownPaperMiner(): Promise<void> {
     unregisterReaderContextMenu();
     unregisterReaderBanner();
     await unregisterJournalColumn();
+    await unregisterCitationColumn();
     unregisterJournalSection();
     await pluginCache.flush();
   } catch (error) {

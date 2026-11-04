@@ -2,6 +2,7 @@
 
 import { assert } from "chai";
 import {
+  getCitationCountSync,
   getCitationSummary,
   parseScholarCitations,
   parseScholarSearch,
@@ -81,6 +82,7 @@ describe("citation fallback", function () {
       assert.equal(summary.source, "openalex");
       assert.equal(summary.count, 1234);
       assert.include(summary.citesUrl, "openalex.org");
+      assert.equal(getCitationCountSync(item), 1234);
     } finally {
       Zotero.HTTP.request = originalHTTP;
       (globalThis as any).fetch = originalFetch;

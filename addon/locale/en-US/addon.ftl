@@ -114,3 +114,7 @@ paperminer-citation-unavailable = Unavailable
 paperminer-citation-source-openalex = OpenAlex (Google Scholar temporarily unavailable)
 paperminer-citation-open-openalex = View all on OpenAlex
 paperminer-citation-click-to-load = Click "Google citations" to load
+paperminer-citation-column-label = Google citations
+paperminer-citation-column-title = Google Scholar citations
+paperminer-citation-open-scholar-search = Search on Google Scholar
+paperminer-citation-timeout = Citation request timed out. Google Scholar may be rate-limiting; try again later.

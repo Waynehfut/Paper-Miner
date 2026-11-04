@@ -67,6 +67,25 @@ class PluginCache {
     return entry.v as T;
   }
 
+  /** All non-expired entries in a namespace (used to warm in-memory indexes). */
+  async entries<T>(
+    namespace: string,
+    ttlDays?: number,
+  ): Promise<Record<string, T>> {
+    await this.init();
+    const source = this.data.namespaces[namespace] || {};
+    const result: Record<string, T> = {};
+    const now = Date.now();
+    for (const [key, entry] of Object.entries(source)) {
+      if (ttlDays && ttlDays > 0) {
+        const ageMs = now - entry.t;
+        if (ageMs > ttlDays * 24 * 60 * 60 * 1000) continue;
+      }
+      result[key] = entry.v as T;
+    }
+    return result;
+  }
+
   async set(namespace: string, key: string, value: unknown): Promise<void> {
     await this.init();
     this.data.namespaces[namespace] ||= {};

@@ -21,7 +21,7 @@ import { errorToString, log } from "../../utils/log";
 import { getPref } from "../../utils/prefs";
 import { showProgress, toast } from "../../utils/ui";
 import { openChatPanel } from "./chatPanel";
-import { refreshJournalColumn } from "./treeColumn";
+import { refreshCitationColumn, refreshJournalColumn } from "./treeColumn";
 
 /**
  * Item pane section: AI action buttons. Journal badges live only in the
@@ -298,6 +298,7 @@ function renderCitationSummary(
     );
     if (summary.error) row.title = summary.error;
   }
+  refreshCitationColumn();
 }
 
 async function loadCitationSummary(
@@ -360,7 +361,10 @@ function renderSection(props: SectionArgs): void {
   });
   const citationRow = htmlEl(doc, "div", {
     class: "pm-citation-summary",
-    text: t("citation-click-to-load", "点击「谷歌他引」查看"),
+    text:
+      getPref("citationAutoFetch") !== false
+        ? t("citation-loading-short", "正在查询谷歌他引…")
+        : t("citation-click-to-load", "点击「谷歌他引」查看"),
   });
   root.appendChild(citationRow);
   root.appendChild(

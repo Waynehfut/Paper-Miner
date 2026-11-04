@@ -805,3 +805,18 @@
   color: var(--pm-text-muted);
   opacity: 0.85;
 }
+
+.pm-citation-column {
+  display: inline-block;
+  min-width: 2.5em;
+  padding-inline-end: 4px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--pm-text-secondary);
+  text-align: right;
+}
+
+.pm-citation-column-empty {
+  color: var(--pm-text-muted);
+  opacity: 0.5;
+}

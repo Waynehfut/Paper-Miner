@@ -69,6 +69,32 @@ function normalizeTitle(value: string): string {
     .trim();
 }
 
+const citationCounts = new Map<string, number>();
+
+function rememberCount(item: Zotero.Item, summary: CitationSummary): void {
+  if (summary.status !== "ok") return;
+  const key = citationKey(item);
+  if (key) citationCounts.set(key, summary.count);
+}
+
+/** Synchronous count lookup for item-tree columns; undefined means not fetched. */
+export function getCitationCountSync(item: Zotero.Item): number | undefined {
+  const key = citationKey(item);
+  return key ? citationCounts.get(key) : undefined;
+}
+
+/** Warm the synchronous count index from the persistent cache. */
+export async function hydrateCitationCounts(): Promise<void> {
+  const entries = await pluginCache.entries<CitationSummary>(
+    CACHE_NAMESPACE,
+    CACHE_TTL_DAYS,
+  );
+  for (const [key, summary] of Object.entries(entries)) {
+    if (!key.startsWith("summary:") || summary?.status !== "ok") continue;
+    citationCounts.set(key.slice("summary:".length), summary.count);
+  }
+}
+
 function citationKey(item: Zotero.Item): string {
   const doi = getItemDOI(item);
   if (doi) return `doi:${doi.toLowerCase()}`;
@@ -260,7 +286,7 @@ function summaryFromHit(
   };
 }
 
-function errorSummary(error: unknown): CitationSummary {
+function errorSummary(error: unknown, sourceUrl = ""): CitationSummary {
   const message =
     error instanceof CitationError
       ? error.message
@@ -271,7 +297,7 @@ function errorSummary(error: unknown): CitationSummary {
     clusterId: "",
     citesUrl: "",
     title: "",
-    sourceUrl: "",
+    sourceUrl,
     source: "google",
     fetchedAt: Date.now(),
     error: message,
@@ -456,7 +482,10 @@ export async function getCachedCitationSummary(
     `summary:${key}`,
     CACHE_TTL_DAYS,
   );
-  return cached ? { ...cached, source: cached.source || "google" } : undefined;
+  if (!cached) return undefined;
+  const summary = { ...cached, source: cached.source || "google" };
+  rememberCount(item, summary);
+  return summary;
 }
 
 /** Search Google Scholar and return the cited-by count for an item. */
@@ -476,7 +505,11 @@ export async function getCitationSummary(
       `summary:${key}`,
       CACHE_TTL_DAYS,
     );
-    if (cached) return { ...cached, source: cached.source || "google" };
+    if (cached) {
+      const summary = { ...cached, source: cached.source || "google" };
+      rememberCount(item, summary);
+      return summary;
+    }
   }
   const doi = getItemDOI(item);
   const title = getItemTitle(item);
@@ -501,6 +534,7 @@ export async function getCitationSummary(
       const fallback = await getOpenAlexSummary(item);
       if (fallback) {
         await pluginCache.set(CACHE_NAMESPACE, `summary:${key}`, fallback);
+        rememberCount(item, fallback);
         return fallback;
       }
       return {
@@ -516,6 +550,7 @@ export async function getCitationSummary(
     }
     const summary = summaryFromHit(hit, item, searchUrl);
     await pluginCache.set(CACHE_NAMESPACE, `summary:${key}`, summary);
+    rememberCount(item, summary);
     return summary;
   } catch (error) {
     log(
@@ -525,9 +560,10 @@ export async function getCitationSummary(
     const fallback = await getOpenAlexSummary(item);
     if (fallback) {
       await pluginCache.set(CACHE_NAMESPACE, `summary:${key}`, fallback);
+      rememberCount(item, fallback);
       return fallback;
     }
-    return errorSummary(error);
+    return errorSummary(error, searchUrl);
   }
 }
 
