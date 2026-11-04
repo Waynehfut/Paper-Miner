@@ -153,3 +153,5 @@ paperminer-pref-translate-mymemory-email = MyMemory 邮箱（可选）
 paperminer-pref-chat-skills-files-desc = 技能以 Markdown 文件保存在 Zotero 数据目录的 paperminer/skills/ 中，每条技能一个 .md 文件；修改后点击「从文件夹重新加载」。
 paperminer-pref-chat-skill-reload =
     .label = 从文件夹重新加载
+paperminer-pref-journal-citation-auto =
+    .label = 自动查询谷歌他引数

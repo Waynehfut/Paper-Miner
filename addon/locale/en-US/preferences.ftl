@@ -153,3 +153,5 @@ paperminer-pref-translate-mymemory-email = MyMemory email (optional)
 paperminer-pref-chat-skills-files-desc = Skills are stored as Markdown files under the Zotero data directory at paperminer/skills/ (one .md per skill). Edit them, then click "Reload from folder".
 paperminer-pref-chat-skill-reload =
     .label = Reload from folder
+paperminer-pref-journal-citation-auto =
+    .label = Auto-fetch Google citation count

@@ -25,6 +25,7 @@ declare namespace _ZoteroTypes {
       "journalFields": string;
       "journalCacheDays": number;
       "journalShowSection": boolean;
+      "citationAutoFetch": boolean;
       "journalShowColumn": boolean;
       "journalShowReaderBanner": boolean;
       "summaryAuto": boolean;

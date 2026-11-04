@@ -27,6 +27,7 @@ export const DEFAULT_PREFS: Record<string, string | number | boolean> = {
     "sciUp,sciUpTop,sci,sciif,sciWarning,cssci,pku,cscd,zhongguokejihexin,cju",
   journalCacheDays: 30,
   journalShowSection: true,
+  citationAutoFetch: true,
   journalShowColumn: true,
   journalShowReaderBanner: true,
 

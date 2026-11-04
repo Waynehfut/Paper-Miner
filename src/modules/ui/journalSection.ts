@@ -3,6 +3,12 @@ import { isLLMConfigured } from "../ai/config";
 import { generatePpt } from "../ai/ppt";
 import { generateSummary, openSummaryNote } from "../ai/summary";
 import { prefetchJournalRanks, getJournalRank } from "../journal/service";
+import {
+  getCachedCitationSummary,
+  getCitationSummary,
+  type CitationSummary,
+} from "../citations/service";
+import { openCitationDialog } from "../citations/dialog";
 import { htmlEl, zoteroIconImg } from "../journal/dom";
 import { clearChildren } from "../../utils/html";
 import { t } from "../../utils/i18n";
@@ -178,7 +184,11 @@ function actionButton(
   return button;
 }
 
-function buildActions(doc: Document, item: Zotero.Item): HTMLElement {
+function buildActions(
+  doc: Document,
+  item: Zotero.Item,
+  onCitationSummary?: (summary: CitationSummary) => void,
+): HTMLElement {
   const grid = htmlEl(doc, "div", {
     class: "pm-actions pm-journal-actions",
   });
@@ -200,18 +210,22 @@ function buildActions(doc: Document, item: Zotero.Item): HTMLElement {
   grid.appendChild(
     actionButton(doc, "refresh", t("action-refresh", "刷新信息"), () => {
       void refreshData(item);
+      void getCitationSummary(item, { force: true }).then((summary) =>
+        onCitationSummary?.(summary),
+      );
     }),
   );
   grid.appendChild(
-    actionButton(
-      doc,
-      "globe",
-      t("action-translate", "划词翻译"),
-      () => {
-        void runTranslateEntry(item);
-      },
-      "pm-journal-action-wide",
-    ),
+    actionButton(doc, "globe", t("action-translate", "划词翻译"), () => {
+      void runTranslateEntry(item);
+    }),
+  );
+  grid.appendChild(
+    actionButton(doc, "link", t("action-citations", "谷歌他引"), () => {
+      openCitationDialog(item, {
+        onSummary: (summary) => onCitationSummary?.(summary),
+      });
+    }),
   );
   return grid;
 }
@@ -230,6 +244,89 @@ async function refreshData(item: Zotero.Item): Promise<void> {
     toast(
       `${t("journal-error", "获取期刊信息失败")}：${friendlyMessage(error)}`,
       "fail",
+    );
+  }
+}
+
+function renderCitationSummary(
+  doc: Document,
+  row: HTMLElement,
+  summary: CitationSummary,
+): void {
+  clearChildren(row);
+  row.removeAttribute("title");
+  row.appendChild(
+    htmlEl(doc, "span", {
+      class: "pm-citation-summary-label",
+      text: t("citation-title", "谷歌他引"),
+    }),
+  );
+  if (summary.status === "ok") {
+    row.appendChild(
+      htmlEl(doc, "span", {
+        class: "pm-citation-summary-count",
+        text: t("citation-count-short", "{ count } 次", {
+          count: summary.count,
+        }),
+      }),
+    );
+    if (summary.source === "openalex") {
+      row.appendChild(
+        htmlEl(doc, "span", {
+          class: "pm-citation-summary-source",
+          text: "OpenAlex",
+          title: t(
+            "citation-source-openalex",
+            "OpenAlex（Google Scholar 暂时不可用）",
+          ),
+        }),
+      );
+    }
+  } else if (summary.status === "notfound") {
+    row.appendChild(
+      htmlEl(doc, "span", {
+        class: "pm-citation-summary-error",
+        text: t("citation-no-record", "暂无记录"),
+      }),
+    );
+  } else {
+    row.appendChild(
+      htmlEl(doc, "span", {
+        class: "pm-citation-summary-error",
+        text: t("citation-unavailable", "暂时无法获取"),
+      }),
+    );
+    if (summary.error) row.title = summary.error;
+  }
+}
+
+async function loadCitationSummary(
+  doc: Document,
+  item: Zotero.Item,
+  body: HTMLDivElement,
+  row: HTMLElement,
+): Promise<void> {
+  let summary = await getCachedCitationSummary(item);
+  const autoFetch = getPref("citationAutoFetch") !== false;
+  if (!summary && autoFetch) {
+    summary = await getCitationSummary(item);
+  }
+  if (!body.isConnected || body.dataset.pmItemId !== String(item.id)) return;
+  if (summary) {
+    renderCitationSummary(doc, row, summary);
+  } else {
+    clearChildren(row);
+    row.appendChild(
+      htmlEl(doc, "span", {
+        class: "pm-citation-summary-label",
+        text: t("citation-title", "谷歌他引"),
+      }),
+    );
+    row.appendChild(
+      htmlEl(doc, "span", {
+        class: "pm-citation-summary-error",
+        text: t("citation-click-to-load", "点击「谷歌他引」查看"),
+      }),
     );
   }
 }
@@ -261,8 +358,18 @@ function renderSection(props: SectionArgs): void {
   const root = htmlEl(doc, "div", {
     class: "pm-root pm-journal-section",
   });
-  root.appendChild(buildActions(doc, regular));
+  const citationRow = htmlEl(doc, "div", {
+    class: "pm-citation-summary",
+    text: t("citation-click-to-load", "点击「谷歌他引」查看"),
+  });
+  root.appendChild(citationRow);
+  root.appendChild(
+    buildActions(doc, regular, (summary) =>
+      renderCitationSummary(doc, citationRow, summary),
+    ),
+  );
   body.appendChild(root);
+  void loadCitationSummary(doc, regular, body, citationRow);
 }
 
 function scheduleSelectionPrefetch(item: Zotero.Item | null | undefined): void {

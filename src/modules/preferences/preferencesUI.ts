@@ -890,6 +890,7 @@ export async function initPreferencesUI(
   bindText(win, "pm-journal-secret", "journalSecretKey");
   bindNumber(win, "pm-journal-cachedays", "journalCacheDays");
   bindCheckbox(win, "pm-journal-showsection", "journalShowSection");
+  bindCheckbox(win, "pm-journal-citation-auto", "citationAutoFetch");
   bindCheckbox(win, "pm-journal-showcolumn", "journalShowColumn");
   bindCheckbox(win, "pm-journal-showbanner", "journalShowReaderBanner");
 

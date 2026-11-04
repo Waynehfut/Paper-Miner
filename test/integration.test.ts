@@ -41,14 +41,23 @@ describe("PaperMiner integration", function () {
   this.timeout(90000);
   let item: Zotero.Item;
   let attachment: Zotero.Item;
+  let citationAutoBackup: unknown;
 
   before(async function () {
+    const key = "extensions.zotero.paperminer.citationAutoFetch";
+    citationAutoBackup = Zotero.Prefs.get(key, true);
+    Zotero.Prefs.set(key, false, true);
     const created = await createTestPaper();
     item = created.item;
     attachment = created.attachment;
   });
 
   after(async function () {
+    Zotero.Prefs.set(
+      "extensions.zotero.paperminer.citationAutoFetch",
+      citationAutoBackup,
+      true,
+    );
     if (item) {
       await item.eraseTx();
     }
@@ -97,6 +106,7 @@ describe("PaperMiner integration", function () {
     const text = body!.textContent || "";
     assert.match(text, /AI (摘要|Summary)/);
     assert.match(text, /(阅读对话|Chat with Paper)/);
+    assert.match(text, /(谷歌他引|Google citations)/);
     assert.isNull(
       body!.querySelector('[data-pm-role="journal"]'),
       "journal badges should not be duplicated in the item pane",
