@@ -218,8 +218,11 @@ export function openCitationDialog(
     }
     const list = el(doc, "div", "pm-citation-list");
     details.items.forEach((entry, index) => {
-      const row = el(doc, "button", "pm-citation-item");
-      row.type = "button";
+      // Use a div rather than a native <button>: Zotero's global button styles
+      // force a fixed row height, which made the title and metadata overlap.
+      const row = el(doc, "div", "pm-citation-item");
+      row.setAttribute("role", "button");
+      row.tabIndex = 0;
       row.title = t("citation-open-item", "打开论文页");
       const number = el(
         doc,
@@ -234,6 +237,13 @@ export function openCitationDialog(
       const arrow = el(doc, "span", "pm-citation-item-arrow", "↗");
       row.append(number, content, arrow);
       row.addEventListener("click", () => openURL(entry.url));
+      row.addEventListener("keydown", (event) => {
+        const key = (event as KeyboardEvent).key;
+        if (key === "Enter" || key === " ") {
+          event.preventDefault();
+          openURL(entry.url);
+        }
+      });
       list.appendChild(row);
     });
     body.appendChild(list);

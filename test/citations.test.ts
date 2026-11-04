@@ -218,3 +218,88 @@ describe("partial citation details", function () {
     }
   });
 });
+
+describe("citation dialog layout", function () {
+  it("keeps title and metadata in separate lines", async function () {
+    const originalFetch = (globalThis as any).fetch;
+    try {
+      (globalThis as any).fetch = async (url: string) => {
+        if (url.includes("filter=cites")) {
+          return new Response(
+            JSON.stringify({
+              results: [
+                {
+                  id: "https://openalex.org/W1",
+                  display_name:
+                    "A very long citing paper title that should wrap onto a second line without overlapping its metadata",
+                  cited_by_count: 1,
+                  publication_year: 2025,
+                  authorships: [{ author: { display_name: "Alice Author" } }],
+                  primary_location: {
+                    landing_page_url: "https://example.org/citing-1",
+                    source: { display_name: "Journal of Testing" },
+                  },
+                },
+                {
+                  id: "https://openalex.org/W2",
+                  display_name: "Second citing paper",
+                  cited_by_count: 0,
+                  publication_year: 2024,
+                  authorships: [{ author: { display_name: "Bob Author" } }],
+                  primary_location: {
+                    landing_page_url: "https://example.org/citing-2",
+                    source: { display_name: "Journal of Testing" },
+                  },
+                },
+              ],
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            id: "https://openalex.org/W999",
+            display_name: "Layout Test Paper",
+            cited_by_count: 2,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      };
+      const item = {
+        id: 99,
+        isRegularItem: () => true,
+        getField: (field: string) =>
+          field === "DOI"
+            ? "10.9999/papermier-layout-test"
+            : field === "title"
+              ? "Layout Test Paper"
+              : "",
+        getDisplayTitle: () => "Layout Test Paper",
+      } as any;
+      const { openCitationDialog } =
+        await import("../src/modules/citations/dialog");
+      openCitationDialog(item);
+      await Zotero.Promise.delay(500);
+      const doc = Zotero.getMainWindow().document;
+      const rows = Array.from(
+        doc.querySelectorAll(".pm-citation-item"),
+      ) as HTMLElement[];
+      assert.isAtLeast(rows.length, 2);
+      for (const row of rows) {
+        const title = row.querySelector(
+          ".pm-citation-item-title",
+        ) as HTMLElement;
+        const meta = row.querySelector(".pm-citation-item-meta") as HTMLElement;
+        assert.isAtLeast(row.getBoundingClientRect().height, 42);
+        assert.isAtLeast(
+          meta.getBoundingClientRect().top,
+          title.getBoundingClientRect().bottom - 1,
+          "metadata should be below the title",
+        );
+      }
+      (doc.querySelector(".pm-citation-close") as HTMLElement)?.click();
+    } finally {
+      (globalThis as any).fetch = originalFetch;
+    }
+  });
+});

@@ -704,8 +704,8 @@
   box-sizing: border-box;
   width: 100%;
   height: auto !important;
-  min-height: 42px;
-  max-height: none;
+  min-height: 46px !important;
+  max-height: none !important;
   padding: 9px 8px;
   border: 0;
   border-bottom: 1px solid var(--pm-border);
@@ -739,10 +739,13 @@
 
 .pm-citation-item-content {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
 }
 
 .pm-citation-item-title {
