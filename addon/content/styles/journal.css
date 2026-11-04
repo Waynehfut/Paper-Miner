@@ -698,16 +698,25 @@
 
 .pm-citation-item {
   display: flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   gap: 10px;
+  box-sizing: border-box;
   width: 100%;
+  height: auto !important;
+  min-height: 42px;
+  max-height: none;
   padding: 9px 8px;
   border: 0;
   border-bottom: 1px solid var(--pm-border);
   border-radius: 5px;
   background: transparent;
   color: inherit;
+  font: inherit;
+  line-height: normal;
   text-align: left;
+  white-space: normal;
+  overflow: visible;
   cursor: pointer;
 }
 
@@ -737,6 +746,7 @@
 }
 
 .pm-citation-item-title {
+  display: block;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
@@ -745,6 +755,7 @@
 }
 
 .pm-citation-item-meta {
+  display: block;
   font-size: 11px;
   line-height: 1.4;
   color: var(--pm-text-muted);

@@ -158,4 +158,4 @@ paperminer-pref-journal-citation-auto =
 paperminer-pref-citation-openalex-key = OpenAlex API key (optional)
 paperminer-pref-citation-openalex-key-desc = Add an OpenAlex API key if you hit 429 rate limits; leave empty for the shared public quota.
 paperminer-pref-citations-title = Citations
-paperminer-pref-citations-desc = The item pane shows the citation count; "View citations" opens the citing-works list. OpenAlex is preferred, with Google Scholar / OpenCitations fallbacks.
+paperminer-pref-citations-desc = The item pane shows the citation count; "Cited by" opens the citing-works list. OpenAlex is preferred, with Google Scholar / OpenCitations fallbacks.
