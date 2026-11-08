@@ -353,7 +353,8 @@ describe("PaperMiner reader integration", function () {
       assert.include(quote.textContent || "", "Selected chat answer text");
 
       selectSample();
-      (panel!.querySelector(".pm-chat-input") as HTMLTextAreaElement)?.blur();
+      // Keep the composer focused: macOS often leaves focus there after a
+      // mouse selection, and Cmd+C must still copy the message selection.
       const key = new (Zotero.getMainWindow() as any).KeyboardEvent("keydown", {
         key: "c",
         ctrlKey: true,

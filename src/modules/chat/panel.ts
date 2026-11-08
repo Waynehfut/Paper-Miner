@@ -183,14 +183,10 @@ export class ChatPanel {
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "c") {
       return;
     }
-    const active = this.doc.activeElement;
-    if (
-      active instanceof HTMLInputElement ||
-      active instanceof HTMLTextAreaElement ||
-      active?.getAttribute?.("contenteditable") === "true"
-    ) {
-      return;
-    }
+    // The chord must work even when the composer still owns focus (common on
+    // macOS after selecting text with the mouse). If the user is selecting
+    // inside the input itself, getSelectedMessageText returns null and the
+    // native copy behavior is preserved.
     const selected = this.getSelectedMessageText();
     if (!selected) return;
     event.preventDefault();
@@ -534,6 +530,12 @@ export class ChatPanel {
     this.hideSelectionToolbar();
     this.clearMessageSelection();
     this.selectedMessageText = "";
+    // Leave the composer ready for Cmd/Ctrl+V after copying a message.
+    try {
+      this.inputEl.focus();
+    } catch {
+      // ignore
+    }
   }
 
   private askAboutSelectedMessage(): void {
