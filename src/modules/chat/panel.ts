@@ -180,9 +180,25 @@ export class ChatPanel {
   };
 
   private handleSelectionKeyDown = (event: KeyboardEvent): void => {
-    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "c") {
+    if (!(event.ctrlKey || event.metaKey)) return;
+    // If a message is selected, make Cmd/Ctrl+V target the composer even when
+    // the previous focus was the message area or the selection toolbar.
+    if (
+      event.key.toLowerCase() === "v" &&
+      this.selectionToolbar &&
+      !this.selectionToolbar.hidden
+    ) {
+      const active = this.doc.activeElement;
+      if (
+        !(active instanceof HTMLInputElement) &&
+        !(active instanceof HTMLTextAreaElement) &&
+        active?.getAttribute?.("contenteditable") !== "true"
+      ) {
+        this.inputEl.focus();
+      }
       return;
     }
+    if (event.key.toLowerCase() !== "c") return;
     // The chord must work even when the composer still owns focus (common on
     // macOS after selecting text with the mouse). If the user is selecting
     // inside the input itself, getSelectedMessageText returns null and the
