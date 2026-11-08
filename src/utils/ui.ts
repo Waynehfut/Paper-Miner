@@ -71,13 +71,57 @@ export function toast(
 }
 
 export function copyText(text: string): void {
+  const value = String(text ?? "");
+  if (!value) return;
   try {
-    Zotero.Utilities.Internal.copyTextToClipboard(text);
+    Zotero.Utilities.Internal.copyTextToClipboard(value);
     toast("已复制", "success");
+    return;
   } catch (error) {
-    log("copyText failed:", error);
-    toast("复制失败", "fail");
+    log("copyText native failed:", error);
   }
+
+  // Fallback for environments where the privileged clipboard helper is
+  // unavailable (or the chat panel is inside an iframe).
+  try {
+    const win = Zotero.getMainWindow();
+    const doc = win?.document;
+    if (doc) {
+      const area = doc.createElement("textarea");
+      area.value = value;
+      area.setAttribute("readonly", "true");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      area.style.pointerEvents = "none";
+      (doc.body || doc.documentElement)?.appendChild(area);
+      area.select();
+      const copied = doc.execCommand("copy");
+      area.remove();
+      if (copied) {
+        toast("已复制", "success");
+        return;
+      }
+    }
+  } catch (error) {
+    log("copyText execCommand failed:", error);
+  }
+
+  try {
+    const clipboard = Zotero.getMainWindow()?.navigator?.clipboard;
+    if (clipboard?.writeText) {
+      void clipboard
+        .writeText(value)
+        .then(() => toast("已复制", "success"))
+        .catch((error: unknown) => {
+          log("copyText clipboard failed:", error);
+          toast("复制失败", "fail");
+        });
+      return;
+    }
+  } catch (error) {
+    log("copyText clipboard unavailable:", error);
+  }
+  toast("复制失败", "fail");
 }
 
 export function openURL(url: string): void {

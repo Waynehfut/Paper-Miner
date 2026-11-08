@@ -244,3 +244,5 @@ paperminer-citation-timeout = 获取引用超时。Google Scholar 可能正在�
 paperminer-citation-source-opencitations = OpenCitations（Google Scholar / OpenAlex 暂时不可用）
 paperminer-citation-open-opencitations = 在 OpenCitations 查看
 paperminer-citation-list-unavailable = 引用列表暂时无法加载
+paperminer-chat-selection-copy = 复制
+paperminer-chat-selection-ask = 追问

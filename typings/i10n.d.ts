@@ -55,6 +55,8 @@ export type FluentMessageId =
   | 'paperminer-chat-role-avatar-assistant'
   | 'paperminer-chat-role-avatar-user'
   | 'paperminer-chat-role-user'
+  | 'paperminer-chat-selection-ask'
+  | 'paperminer-chat-selection-copy'
   | 'paperminer-chat-send'
   | 'paperminer-chat-setup-desc'
   | 'paperminer-chat-setup-title'

@@ -162,6 +162,41 @@ export class ChatPanel {
   private countEl!: HTMLElement;
   private sendButton!: HTMLButtonElement;
   private stopButton!: HTMLButtonElement;
+  private selectionToolbar: HTMLElement | null = null;
+  private selectedMessageText = "";
+
+  private handleSelectionChange = (): void => {
+    if (!this.root || this.root.hidden || !this.messagesEl) {
+      this.hideSelectionToolbar();
+      return;
+    }
+    const selected = this.getSelectedMessageText();
+    if (!selected) {
+      this.hideSelectionToolbar();
+      return;
+    }
+    this.selectedMessageText = selected.text;
+    this.positionSelectionToolbar(selected.range);
+  };
+
+  private handleSelectionKeyDown = (event: KeyboardEvent): void => {
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "c") {
+      return;
+    }
+    const active = this.doc.activeElement;
+    if (
+      active instanceof HTMLInputElement ||
+      active instanceof HTMLTextAreaElement ||
+      active?.getAttribute?.("contenteditable") === "true"
+    ) {
+      return;
+    }
+    const selected = this.getSelectedMessageText();
+    if (!selected) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.copySelectedMessage(selected.text);
+  };
 
   private host: PanelHost | null = null;
   private item: Zotero.Item | null = null;
@@ -391,6 +426,125 @@ export class ChatPanel {
     this.messagesEl.addEventListener("click", (event) =>
       this.handleMessagesClick(event),
     );
+    this.installSelectionTools();
+  }
+
+  private getSelectedMessageText(): { text: string; range: Range } | null {
+    try {
+      const selection = this.win.getSelection();
+      if (!selection || selection.isCollapsed || !selection.rangeCount) {
+        return null;
+      }
+      const range = selection.getRangeAt(0);
+      if (
+        !this.messagesEl ||
+        !this.messagesEl.contains(range.commonAncestorContainer)
+      ) {
+        return null;
+      }
+      const text = selection.toString().trim();
+      return text ? { text, range } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private installSelectionTools(): void {
+    if (this.selectionToolbar) return;
+    const toolbar = mk(this.doc, "div", "pm-chat-selection-toolbar");
+    toolbar.hidden = true;
+    const copyButton = mk(
+      this.doc,
+      "button",
+      "pm-chat-selection-action",
+      t("chat-selection-copy", "复制"),
+    ) as HTMLButtonElement;
+    copyButton.type = "button";
+    const askButton = mk(
+      this.doc,
+      "button",
+      "pm-chat-selection-action",
+      t("chat-selection-ask", "追问"),
+    ) as HTMLButtonElement;
+    askButton.type = "button";
+    copyButton.setAttribute("aria-label", t("chat-selection-copy", "复制"));
+    askButton.setAttribute("aria-label", t("chat-selection-ask", "追问"));
+    for (const button of [copyButton, askButton]) {
+      button.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+    }
+    copyButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.selectedMessageText) {
+        this.copySelectedMessage(this.selectedMessageText);
+      }
+    });
+    askButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.askAboutSelectedMessage();
+    });
+    toolbar.append(copyButton, askButton);
+    (this.doc.body || this.doc.documentElement)?.appendChild(toolbar);
+    this.selectionToolbar = toolbar;
+    this.doc.addEventListener("selectionchange", this.handleSelectionChange);
+    this.doc.addEventListener("keydown", this.handleSelectionKeyDown, true);
+  }
+
+  private positionSelectionToolbar(range: Range): void {
+    const toolbar = this.selectionToolbar;
+    if (!toolbar) return;
+    toolbar.hidden = false;
+    const rect = range.getBoundingClientRect();
+    const viewWidth = this.win.innerWidth || 0;
+    const viewHeight = this.win.innerHeight || 0;
+    const toolRect = toolbar.getBoundingClientRect();
+    const half = toolRect.width / 2;
+    const left = Math.min(
+      Math.max(8 + half, rect.left + rect.width / 2),
+      Math.max(8 + half, viewWidth - half - 8),
+    );
+    let top = rect.bottom + 8;
+    if (top + toolRect.height > viewHeight - 8) {
+      top = Math.max(8, rect.top - toolRect.height - 8);
+    }
+    toolbar.style.left = `${left - half}px`;
+    toolbar.style.top = `${top}px`;
+  }
+
+  private hideSelectionToolbar(): void {
+    if (this.selectionToolbar) this.selectionToolbar.hidden = true;
+  }
+
+  private clearMessageSelection(): void {
+    try {
+      this.win.getSelection()?.removeAllRanges();
+    } catch {
+      // ignore
+    }
+  }
+
+  private copySelectedMessage(text: string): void {
+    const value = String(text || "").trim();
+    if (!value) return;
+    copyText(value);
+    this.hideSelectionToolbar();
+    this.clearMessageSelection();
+    this.selectedMessageText = "";
+  }
+
+  private askAboutSelectedMessage(): void {
+    const text = this.selectedMessageText.trim();
+    this.hideSelectionToolbar();
+    this.clearMessageSelection();
+    if (!text) return;
+    this.setQuote(text);
+    this.inputEl.focus();
+    this.updateComposerState();
+    this.selectedMessageText = "";
   }
 
   /* ------------------------------------------------------------------ */
@@ -428,6 +582,10 @@ export class ChatPanel {
     this.disposed = true;
     this.abortStreaming();
     this.flushSave();
+    this.doc.removeEventListener("selectionchange", this.handleSelectionChange);
+    this.doc.removeEventListener("keydown", this.handleSelectionKeyDown, true);
+    this.selectionToolbar?.remove();
+    this.selectionToolbar = null;
     if (this.streamTimer) {
       clearTimeout(this.streamTimer);
       this.streamTimer = null;

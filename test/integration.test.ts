@@ -312,6 +312,62 @@ describe("PaperMiner reader integration", function () {
         panel!.textContent?.includes("论文阅读对话"),
       "chat panel content should render",
     );
+
+    // Text selection in an answer offers Copy / Ask follow-up, and Ctrl+C
+    // copies the selection even when the panel is embedded in the reader UI.
+    const messages = panel!.querySelector(".pm-chat-messages") as HTMLElement;
+    assert.ok(messages, "chat message list should exist");
+    const sample = mainDoc.createElement("div");
+    sample.className = "pm-chat-markdown";
+    sample.textContent = "Selected chat answer text for copy testing.";
+    messages.appendChild(sample);
+    const originalClipboard = Zotero.Utilities.Internal.copyTextToClipboard;
+    let copied = "";
+    try {
+      (Zotero.Utilities.Internal as any).copyTextToClipboard = (
+        text: string,
+      ) => {
+        copied = text;
+      };
+      const selectSample = () => {
+        const selection = Zotero.getMainWindow().getSelection();
+        const range = mainDoc.createRange();
+        range.selectNodeContents(sample);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        mainDoc.dispatchEvent(new Event("selectionchange"));
+      };
+      selectSample();
+      await Zotero.Promise.delay(50);
+      const toolbar = mainDoc.querySelector(
+        ".pm-chat-selection-toolbar",
+      ) as HTMLElement;
+      assert.ok(toolbar, "selection toolbar should be mounted");
+      assert.isFalse(toolbar.hidden, "selection toolbar should be visible");
+      const actions = toolbar.querySelectorAll(".pm-chat-selection-action");
+      assert.equal(actions.length, 2);
+      (actions[1] as HTMLButtonElement).click();
+      await Zotero.Promise.delay(50);
+      const quote = panel!.querySelector(".pm-chat-quote") as HTMLElement;
+      assert.isFalse(quote.hidden, "ask action should fill the quote chip");
+      assert.include(quote.textContent || "", "Selected chat answer text");
+
+      selectSample();
+      (panel!.querySelector(".pm-chat-input") as HTMLTextAreaElement)?.blur();
+      const key = new (Zotero.getMainWindow() as any).KeyboardEvent("keydown", {
+        key: "c",
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true,
+      });
+      mainDoc.dispatchEvent(key);
+      assert.include(copied, "Selected chat answer text");
+    } finally {
+      (Zotero.Utilities.Internal as any).copyTextToClipboard =
+        originalClipboard;
+      Zotero.getMainWindow().getSelection()?.removeAllRanges();
+    }
+
     closeChatPanel();
     await Zotero.Promise.delay(800);
     assert.isNull(

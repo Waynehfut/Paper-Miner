@@ -121,3 +121,5 @@ paperminer-citation-timeout = Citation request timed out. Google Scholar may be 
 paperminer-citation-source-opencitations = OpenCitations (Google Scholar / OpenAlex temporarily unavailable)
 paperminer-citation-open-opencitations = View on OpenCitations
 paperminer-citation-list-unavailable = The citation list is temporarily unavailable
+paperminer-chat-selection-copy = Copy
+paperminer-chat-selection-ask = Ask follow-up

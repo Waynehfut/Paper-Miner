@@ -1148,3 +1148,54 @@
 .pm-inline-translate-btn[hidden] {
   display: none;
 }
+
+/* Text selection actions in the chat conversation. */
+.pm-chat-panel {
+  user-select: text;
+}
+
+.pm-chat-avatar,
+.pm-chat-msg-meta,
+.pm-chat-msg-role,
+.pm-chat-copy {
+  user-select: none;
+}
+
+.pm-chat-selection-toolbar {
+  position: fixed;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--pm-border-strong);
+  border-radius: 6px;
+  background: var(--pm-bg);
+  color: var(--pm-text);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.pm-chat-selection-toolbar[hidden] {
+  display: none;
+}
+
+.pm-chat-selection-action {
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--pm-text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.pm-chat-selection-action:hover {
+  background: var(--pm-bg-hover);
+  color: var(--pm-text);
+}
+
+.pm-chat-selection-action + .pm-chat-selection-action {
+  border-left: 1px solid var(--pm-border);
+  border-radius: 0 4px 4px 0;
+}
