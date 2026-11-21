@@ -131,7 +131,21 @@ describe("PaperMiner integration", function () {
   it("keeps an attachment selected while the item pane refreshes", async function () {
     const pane = Zotero.getActiveZoteroPane();
     pane.selectItem(attachment.id);
-    await Zotero.Promise.delay(2500);
+    await Zotero.Promise.delay(1200);
+    const { refreshJournalColumn } =
+      await import("../src/modules/ui/treeColumn");
+    refreshJournalColumn();
+    const seen: number[] = [];
+    for (let index = 0; index < 20; index += 1) {
+      await Zotero.Promise.delay(100);
+      const current = pane.getSelectedItems() || [];
+      if (current.length) seen.push(current[0].id);
+    }
+    assert.isNotEmpty(seen, "selection should be readable during refresh");
+    assert.isTrue(
+      seen.every((id) => id === attachment.id),
+      `selection flipped during refresh: ${seen.join(",")}`,
+    );
     const selected = pane.getSelectedItems() || [];
     assert.equal(selected.length, 1, "one attachment should stay selected");
     assert.equal(

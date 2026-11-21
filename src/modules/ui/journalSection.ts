@@ -21,7 +21,7 @@ import { errorToString, log } from "../../utils/log";
 import { getPref } from "../../utils/prefs";
 import { showProgress, toast } from "../../utils/ui";
 import { openChatPanel } from "./chatPanel";
-import { refreshCitationColumn, refreshJournalColumn } from "./treeColumn";
+import { refreshJournalColumn } from "./treeColumn";
 
 /**
  * Item pane section: AI action buttons. Journal badges live only in the
@@ -39,7 +39,6 @@ type SectionArgs = _ZoteroTypes.ItemPaneManagerSection.SectionHookArgs;
 type InitArgs = _ZoteroTypes.ItemPaneManagerSection.SectionInitHookArgs;
 
 let registeredKey: string | false | null = null;
-let notifierID: string | false = false;
 const sectionBodies = new Set<HTMLDivElement>();
 const refreshByBody = new WeakMap<HTMLDivElement, () => Promise<void>>();
 let selectionPrefetchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -49,8 +48,11 @@ function resolveRegularItem(item: Zotero.Item | null | undefined) {
 }
 
 function isApplicable(item: Zotero.Item | null | undefined): boolean {
-  const regular = resolveRegularItem(item);
-  return Boolean(regular && isPaperItem(regular));
+  // Do not mount the PaperMiner section while an attachment/child row is
+  // selected. The actions target the parent paper, and enabling the section
+  // for both the attachment and its parent can make Zotero's item pane
+  // re-render between the two items.
+  return Boolean(item && item.isRegularItem() && isPaperItem(item));
 }
 
 function openPreferences(): void {
@@ -306,11 +308,10 @@ function renderCitationSummary(
     );
     if (summary.error) row.title = summary.error;
   }
-  const nextCount = summary.status === "ok" ? String(summary.count) : "";
-  if (row.dataset.pmCitationCount !== nextCount) {
-    row.dataset.pmCitationCount = nextCount;
-    refreshCitationColumn();
-  }
+  // Do not refresh the item tree from inside the item-pane section. The
+  // section is re-rendered by Zotero when the tree refreshes, so doing that
+  // here can create a render/refresh loop and make the pane flicker while an
+  // attachment is selected. The column catches up on the next normal refresh.
 }
 
 async function loadCitationSummary(
@@ -351,7 +352,9 @@ async function loadCitationSummary(
 function renderSection(props: SectionArgs): void {
   const { doc, body, item, setEnabled, setSectionSummary } = props;
   const regular = resolveRegularItem(item);
-  const applicable = Boolean(regular && isPaperItem(regular));
+  const applicable = Boolean(
+    regular && isPaperItem(regular) && item?.isRegularItem(),
+  );
   try {
     setEnabled(applicable);
   } catch (error) {
@@ -397,42 +400,6 @@ function scheduleSelectionPrefetch(item: Zotero.Item | null | undefined): void {
     if (!regular) return;
     void prefetchJournalRanks([regular]);
   }, 500);
-}
-
-function registerNotifier(): void {
-  if (notifierID) return;
-  try {
-    const observer = {
-      notify: (
-        event: string,
-        type: string,
-        ids: Array<number | string>,
-      ): void => {
-        if (type !== "item" || event !== "modify") return;
-        if (!sectionBodies.size) return;
-        const changed = new Set(ids.map((id) => Number(id)));
-        for (const body of [...sectionBodies]) {
-          const itemID = Number(body.dataset.pmItemId || 0);
-          if (!itemID || !changed.has(itemID)) continue;
-          const refresh = refreshByBody.get(body);
-          if (!refresh) continue;
-          void refresh().catch((error) => {
-            log(
-              "refresh section after item change failed:",
-              errorToString(error),
-            );
-          });
-        }
-      },
-    };
-    notifierID = Zotero.Notifier.registerObserver(
-      observer,
-      ["item"],
-      NOTIFIER_ID,
-    );
-  } catch (error) {
-    log("register journal section notifier failed:", errorToString(error));
-  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -484,7 +451,6 @@ export function registerJournalSection(): string | false {
       return false;
     }
     registeredKey = key;
-    registerNotifier();
     return key;
   } catch (error) {
     log("registerJournalSection failed:", errorToString(error));
@@ -502,14 +468,6 @@ export function unregisterJournalSection(): void {
   }
   registeredKey = null;
   sectionBodies.clear();
-  if (notifierID) {
-    try {
-      Zotero.Notifier.unregisterObserver(notifierID);
-    } catch (error) {
-      log("unregister journal notifier failed:", errorToString(error));
-    }
-    notifierID = false;
-  }
   if (selectionPrefetchTimer) {
     clearTimeout(selectionPrefetchTimer);
     selectionPrefetchTimer = null;
