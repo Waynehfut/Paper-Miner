@@ -80,7 +80,25 @@ function scheduleRefresh(): void {
   }, REFRESH_THROTTLE_MS);
 }
 
+function hasChildItemSelected(): boolean {
+  try {
+    const selected = Zotero.getActiveZoteroPane()?.getSelectedItems?.() || [];
+    return selected.some(
+      (item: Zotero.Item) =>
+        item &&
+        typeof item.isRegularItem === "function" &&
+        !item.isRegularItem(),
+    );
+  } catch {
+    return false;
+  }
+}
+
 function applyRefresh(): void {
+  // Refreshing the items view while a child row (attachment/note) is selected
+  // briefly re-selects its parent in Zotero. Defer the column refresh until a
+  // regular item is selected again; this avoids the item-pane flicker.
+  if (hasChildItemSelected()) return;
   try {
     // Refresh only the rendered columns. Rebuilding the whole items view with
     // refreshAndMaintainSelection() can re-select a parent item while an
@@ -357,7 +375,8 @@ export async function registerCitationColumn(): Promise<void> {
       return;
     }
     registeredCitationKey = key;
-    scheduleRefresh();
+    // Do not force a tree refresh while Zotero is restoring/selecting items
+    // during startup. The column renders on the next normal tree redraw.
   } catch (error) {
     log("registerCitationColumn failed:", errorToString(error));
   }
