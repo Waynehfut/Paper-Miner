@@ -128,6 +128,19 @@ describe("PaperMiner integration", function () {
     }
   });
 
+  it("keeps an attachment selected while the item pane refreshes", async function () {
+    const pane = Zotero.getActiveZoteroPane();
+    pane.selectItem(attachment.id);
+    await Zotero.Promise.delay(2500);
+    const selected = pane.getSelectedItems() || [];
+    assert.equal(selected.length, 1, "one attachment should stay selected");
+    assert.equal(
+      selected[0].id,
+      attachment.id,
+      "the item tree must not jump back to the parent item",
+    );
+  });
+
   it("opens the reader and chat panel from the library item", async function () {
     const { openChatPanel, closeChatPanel } =
       await import("../src/modules/ui/chatPanel");

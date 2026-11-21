@@ -5,3 +5,6 @@ node_modules
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+.tmp_dsa_extract
+*_核查报告.md

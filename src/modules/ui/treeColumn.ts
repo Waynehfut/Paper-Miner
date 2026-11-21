@@ -82,6 +82,14 @@ function scheduleRefresh(): void {
 
 function applyRefresh(): void {
   try {
+    // Refresh only the rendered columns. Rebuilding the whole items view with
+    // refreshAndMaintainSelection() can re-select a parent item while an
+    // attachment is selected, which makes the item pane flicker between the
+    // attachment and its parent.
+    if (typeof Zotero.ItemTreeManager.refreshColumns === "function") {
+      Zotero.ItemTreeManager.refreshColumns();
+      return;
+    }
     const view = Zotero.getActiveZoteroPane()?.itemsView as any;
     if (view && typeof view.refreshAndMaintainSelection === "function") {
       void Promise.resolve(view.refreshAndMaintainSelection(false)).catch(
@@ -89,11 +97,9 @@ function applyRefresh(): void {
           log("refresh item tree failed:", errorToString(error));
         },
       );
-      return;
     }
-    Zotero.ItemTreeManager.refreshColumns();
   } catch (error) {
-    log("refreshJournalColumn failed:", errorToString(error));
+    log("refresh item tree columns failed:", errorToString(error));
   }
 }
 

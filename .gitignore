@@ -19,3 +19,7 @@ logs
 # Local dev profiles / caches
 .home
 .zotero-dev
+
+# Local teaching/reference extracts (not part of PaperMiner)
+.tmp_dsa_extract/
+/*_核查报告.md

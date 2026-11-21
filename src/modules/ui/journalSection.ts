@@ -306,7 +306,11 @@ function renderCitationSummary(
     );
     if (summary.error) row.title = summary.error;
   }
-  refreshCitationColumn();
+  const nextCount = summary.status === "ok" ? String(summary.count) : "";
+  if (row.dataset.pmCitationCount !== nextCount) {
+    row.dataset.pmCitationCount = nextCount;
+    refreshCitationColumn();
+  }
 }
 
 async function loadCitationSummary(
