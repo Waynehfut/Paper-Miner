@@ -840,12 +840,14 @@
   display: inline-flex;
   align-items: center;
   width: 100%;
+  pointer-events: auto;
 }
 
 .pm-rating-stars {
   display: inline-flex;
   align-items: center;
   gap: 1px;
+  pointer-events: auto;
 }
 
 .pm-rating-star {
@@ -860,8 +862,8 @@
   text-align: center;
   cursor: pointer;
   user-select: none;
-  opacity: 0.28;
-  filter: grayscale(0.35);
+  pointer-events: auto;
+  opacity: 0.58;
 }
 
 .pm-rating-star-filled {

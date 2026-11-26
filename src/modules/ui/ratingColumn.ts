@@ -115,6 +115,7 @@ function renderRatingCell(
   if (!match) return cell;
   const rating = Math.min(MAX_RATING, Number.parseInt(match[1], 10) || 0);
   const itemID = Number(match[2]);
+  cell.dataset.itemId = String(itemID);
   const stars = htmlEl(doc, "span", { class: "pm-rating-stars" });
   for (let index = 1; index <= MAX_RATING; index += 1) {
     const star = htmlEl(doc, "span", {
@@ -123,6 +124,7 @@ function renderRatingCell(
       attrs: {
         role: "button",
         tabindex: "0",
+        "data-rating": String(index),
         "aria-label": t("rating-star", "评为 { count } 星", { count: index }),
         title: t("rating-star", "评为 { count } 星", { count: index }),
       },
@@ -147,6 +149,42 @@ function renderRatingCell(
   cell.addEventListener("mouseleave", () => paintStars(cell, rating));
   cell.appendChild(stars);
   return cell;
+}
+
+let clickHandler: ((event: MouseEvent) => void) | null = null;
+
+function installRatingTreeClickHandler(): void {
+  if (clickHandler) return;
+  const doc = Zotero.getMainWindow()?.document;
+  if (!doc) return;
+  clickHandler = (event: MouseEvent) => {
+    const target = (event.target as Element | null)?.closest?.(
+      ".pm-rating-star",
+    ) as HTMLElement | null;
+    if (!target) return;
+    const cell = target.closest(".pm-rating-cell") as HTMLElement | null;
+    const itemID = Number(cell?.dataset.itemId || 0);
+    const rating = Number(target.dataset.rating || 0);
+    if (!itemID || !rating) return;
+    event.preventDefault();
+    event.stopPropagation();
+    void setRatingByID(itemID, rating);
+  };
+  doc.addEventListener("click", clickHandler, true);
+}
+
+function removeRatingTreeClickHandler(): void {
+  if (!clickHandler) return;
+  try {
+    Zotero.getMainWindow()?.document.removeEventListener(
+      "click",
+      clickHandler,
+      true,
+    );
+  } catch {
+    // ignore
+  }
+  clickHandler = null;
 }
 
 export function refreshRatingColumn(): void {
@@ -181,6 +219,7 @@ export async function registerRatingColumn(): Promise<void> {
       return;
     }
     registeredKey = key;
+    installRatingTreeClickHandler();
   } catch (error) {
     log("registerRatingColumn failed:", errorToString(error));
   }
@@ -194,6 +233,7 @@ export async function unregisterRatingColumn(): Promise<void> {
     log("unregisterRatingColumn failed:", errorToString(error));
   }
   registeredKey = null;
+  removeRatingTreeClickHandler();
 }
 
 export const __testing = { ratingDataProvider, renderRatingCell };
