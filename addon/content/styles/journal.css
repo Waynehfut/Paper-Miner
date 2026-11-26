@@ -854,16 +854,17 @@
   display: inline-block;
   width: 15px;
   padding: 0;
-  color: var(--pm-text-muted);
+  color: var(--pm-warning);
   font-family:
-    "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    "Apple Color Emoji", "Segoe UI Emoji", "Apple Symbols", "Segoe UI Symbol",
+    "Noto Color Emoji", sans-serif;
   font-size: 14px;
   line-height: 1;
   text-align: center;
   cursor: pointer;
   user-select: none;
   pointer-events: auto;
-  opacity: 0.58;
+  opacity: 0.9;
 }
 
 .pm-rating-star-filled {

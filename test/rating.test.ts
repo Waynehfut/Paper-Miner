@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import {
   RATING_FIELD,
+  RATING_TAGS,
   getRating,
   setRating,
   __testing,
@@ -18,6 +19,13 @@ describe("PaperMiner five-star rating", function () {
       assert.equal(await setRating(item, 3), 3);
       assert.equal(getRating(item), 3);
       assert.include(String(item.getField("extra")), `${RATING_FIELD}: 3`);
+      assert.deepEqual(
+        item
+          .getTags()
+          .map((tag) => tag.tag)
+          .filter((tag) => RATING_TAGS.includes(tag as never)),
+        ["⭐3"],
+      );
       assert.include(String(item.getField("extra")), "Publisher: Test Press");
       assert.equal(__testing.ratingDataProvider(item), `3|${item.id}`);
       const doc = Zotero.getMainWindow().document;
@@ -32,6 +40,7 @@ describe("PaperMiner five-star rating", function () {
       star.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Zotero.Promise.delay(300);
       assert.equal(getRating(item), 4);
+      assert.isTrue(item.getTags().some((tag) => tag.tag === "⭐4"));
       cell.remove();
       const rendered = __testing.renderRatingCell(
         0,
@@ -41,7 +50,7 @@ describe("PaperMiner five-star rating", function () {
         doc,
       );
       assert.equal(rendered.querySelectorAll(".pm-rating-star").length, 5);
-      assert.include(rendered.textContent || "", "⭐");
+      assert.include(rendered.textContent || "", "☆");
       assert.equal(await setRating(item, 0), 0);
       assert.equal(getRating(item), 0);
       assert.notInclude(String(item.getField("extra")), `${RATING_FIELD}:`);

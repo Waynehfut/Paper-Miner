@@ -16,6 +16,12 @@ import { toast } from "../../utils/ui";
 export const RATING_COLUMN_KEY = "paperminerRating";
 export const RATING_FIELD = "rate";
 export const MAX_RATING = 5;
+/** One tag per score so the Zotero tag selector can filter by rating. */
+export const RATING_TAGS = ["⭐1", "⭐2", "⭐3", "⭐4", "⭐5"] as const;
+
+export function ratingTag(value: number): string {
+  return RATING_TAGS[Math.min(MAX_RATING, Math.max(1, value)) - 1];
+}
 
 let registeredKey: string | false | null = null;
 
@@ -27,9 +33,17 @@ function getExtra(item: Zotero.Item): string {
   }
 }
 
-/** Read `rate: N` from the Extra field. */
+/** Read the rating from ⭐N tags, falling back to Extra `rate: N`. */
 export function getRating(item: Zotero.Item | null | undefined): number {
   if (!item) return 0;
+  try {
+    const tags = new Set((item.getTags?.() || []).map((tag) => tag.tag));
+    for (let value = MAX_RATING; value >= 1; value -= 1) {
+      if (tags.has(ratingTag(value))) return value;
+    }
+  } catch {
+    // fall through to Extra
+  }
   const match = /^\s*rate\s*:\s*(\d+)\s*$/im.exec(getExtra(item));
   if (!match) return 0;
   return Math.min(MAX_RATING, Math.max(0, Number.parseInt(match[1], 10) || 0));
@@ -42,12 +56,17 @@ function hasChildItem(item: unknown): boolean {
   );
 }
 
-/** Write `rate: N` into Extra while preserving all other Extra fields. */
+/** Write rating tags plus the zotero-style Extra `rate: N` field. */
 export async function setRating(
   item: Zotero.Item,
   rating: number,
 ): Promise<number> {
   const value = Math.min(MAX_RATING, Math.max(0, Math.round(rating)));
+  const current = new Set((item.getTags?.() || []).map((tag) => tag.tag));
+  for (const tag of RATING_TAGS) {
+    if (current.has(tag)) item.removeTag(tag);
+  }
+  if (value > 0) item.addTag(ratingTag(value));
   const lines = getExtra(item)
     .split(/\r?\n/)
     .filter((line) => !/^\s*rate\s*:\s*\d+\s*$/i.test(line));
@@ -96,7 +115,7 @@ function paintStars(container: HTMLElement, rating: number): void {
   ) as HTMLElement[];
   stars.forEach((star, index) => {
     const filled = index < rating;
-    star.textContent = "⭐️";
+    star.textContent = filled ? "⭐️" : "☆";
     star.classList.toggle("pm-rating-star-filled", filled);
   });
 }
@@ -120,7 +139,7 @@ function renderRatingCell(
   for (let index = 1; index <= MAX_RATING; index += 1) {
     const star = htmlEl(doc, "span", {
       class: "pm-rating-star",
-      text: "⭐️",
+      text: index <= rating ? "⭐️" : "☆",
       attrs: {
         role: "button",
         tabindex: "0",
@@ -152,35 +171,83 @@ function renderRatingCell(
 }
 
 let clickHandler: ((event: MouseEvent) => void) | null = null;
+let lastHandledAt = 0;
+
+function findRatingTarget(
+  doc: Document,
+  event: MouseEvent,
+): { itemID: number; rating: number } | null {
+  let star = (event.target as Element | null)?.closest?.(
+    ".pm-rating-star",
+  ) as HTMLElement | null;
+  let cell = star?.closest(".pm-rating-cell") as HTMLElement | null;
+  if (!cell) {
+    try {
+      const point = doc.elementFromPoint(event.clientX, event.clientY);
+      star = point?.closest?.(".pm-rating-star") as HTMLElement | null;
+      cell =
+        (star?.closest(".pm-rating-cell") as HTMLElement | null) ||
+        (point?.closest?.(".pm-rating-cell") as HTMLElement | null);
+    } catch {
+      // ignore
+    }
+  }
+  if (!cell) {
+    // Zotero's virtualized table may deliver the row/cell element instead of
+    // the nested star span. Find the cell geometrically as a last resort.
+    const cells = Array.from(doc.querySelectorAll(".pm-rating-cell"));
+    cell =
+      (cells.find((entry) => {
+        const rect = (entry as HTMLElement).getBoundingClientRect();
+        return (
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom
+        );
+      }) as HTMLElement | null) || null;
+  }
+  if (!cell?.dataset.itemId) return null;
+  const itemID = Number(cell.dataset.itemId);
+  if (!itemID) return null;
+  if (!star) {
+    const stars = Array.from(
+      cell.querySelectorAll(".pm-rating-star"),
+    ) as HTMLElement[];
+    star =
+      stars.find((entry) => {
+        const rect = entry.getBoundingClientRect();
+        return event.clientX >= rect.left && event.clientX <= rect.right;
+      }) || null;
+  }
+  const rating = Number(star?.dataset.rating || 0);
+  return rating ? { itemID, rating } : null;
+}
 
 function installRatingTreeClickHandler(): void {
   if (clickHandler) return;
   const doc = Zotero.getMainWindow()?.document;
   if (!doc) return;
   clickHandler = (event: MouseEvent) => {
-    const target = (event.target as Element | null)?.closest?.(
-      ".pm-rating-star",
-    ) as HTMLElement | null;
+    const target = findRatingTarget(doc, event);
     if (!target) return;
-    const cell = target.closest(".pm-rating-cell") as HTMLElement | null;
-    const itemID = Number(cell?.dataset.itemId || 0);
-    const rating = Number(target.dataset.rating || 0);
-    if (!itemID || !rating) return;
     event.preventDefault();
     event.stopPropagation();
-    void setRatingByID(itemID, rating);
+    const now = Date.now();
+    if (now - lastHandledAt < 450) return;
+    lastHandledAt = now;
+    void setRatingByID(target.itemID, target.rating);
   };
+  doc.addEventListener("mousedown", clickHandler, true);
   doc.addEventListener("click", clickHandler, true);
 }
 
 function removeRatingTreeClickHandler(): void {
   if (!clickHandler) return;
   try {
-    Zotero.getMainWindow()?.document.removeEventListener(
-      "click",
-      clickHandler,
-      true,
-    );
+    const doc = Zotero.getMainWindow()?.document;
+    doc?.removeEventListener("mousedown", clickHandler, true);
+    doc?.removeEventListener("click", clickHandler, true);
   } catch {
     // ignore
   }
