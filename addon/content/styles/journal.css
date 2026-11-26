@@ -853,18 +853,20 @@
   width: 15px;
   padding: 0;
   color: var(--pm-text-muted);
-  font-family: "Apple Symbols", "Segoe UI Symbol", sans-serif;
-  font-size: 15px;
+  font-family:
+    "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 14px;
   line-height: 1;
   text-align: center;
   cursor: pointer;
   user-select: none;
-  opacity: 0.55;
+  opacity: 0.28;
+  filter: grayscale(0.35);
 }
 
 .pm-rating-star-filled {
-  color: var(--pm-warning);
   opacity: 1;
+  filter: none;
 }
 
 .pm-rating-cell:hover .pm-rating-star {

@@ -96,7 +96,7 @@ function paintStars(container: HTMLElement, rating: number): void {
   ) as HTMLElement[];
   stars.forEach((star, index) => {
     const filled = index < rating;
-    star.textContent = filled ? "★" : "☆";
+    star.textContent = "⭐️";
     star.classList.toggle("pm-rating-star-filled", filled);
   });
 }
@@ -119,7 +119,7 @@ function renderRatingCell(
   for (let index = 1; index <= MAX_RATING; index += 1) {
     const star = htmlEl(doc, "span", {
       class: "pm-rating-star",
-      text: index <= rating ? "★" : "☆",
+      text: "⭐️",
       attrs: {
         role: "button",
         tabindex: "0",
