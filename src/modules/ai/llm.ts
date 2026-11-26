@@ -169,6 +169,14 @@ function normalizeMessages(messages: AiMessage[]): AiMessage[] {
     }));
 }
 
+function needsCompletionTokens(
+  config: LLMRuntimeConfig,
+  model: string,
+): boolean {
+  if (config.presetId !== "openai") return false;
+  return /^(o[1-9]|o\d|gpt-5|gpt-4\.1|chatgpt-4o)/i.test(model);
+}
+
 function buildRequestBody(
   config: LLMRuntimeConfig,
   messages: AiMessage[],
@@ -185,13 +193,19 @@ function buildRequestBody(
   if (Number.isFinite(temperature)) {
     body.temperature = Math.max(0, Math.min(2, temperature));
   }
+  const requestModel = String(options.model || config.model || "");
+  const completionTokens = needsCompletionTokens(config, requestModel);
   if (Number.isFinite(maxTokens) && maxTokens > 0) {
-    body.max_tokens = Math.floor(maxTokens);
+    body[completionTokens ? "max_completion_tokens" : "max_tokens"] =
+      Math.floor(maxTokens);
+  }
+  // o-series / GPT-5 models reject a custom temperature; omit it up front.
+  if (completionTokens && /^(o[1-9]|o\d|gpt-5)/i.test(requestModel)) {
+    delete body.temperature;
   }
   // Provider capability driven: only providers that document a switch get the
   // extra field. Everything else remains a plain OpenAI-compatible request.
   const thinkingControl = getLLMPreset(config.presetId).thinkingControl;
-  const requestModel = String(options.model || config.model || "");
   if (
     thinkingControl &&
     getPref("llmDisableThinking") !== false &&
@@ -233,6 +247,60 @@ function createRequestContext(
 }
 
 /**
+ * OpenAI's newer models reject `max_tokens` and require
+ * `max_completion_tokens`; some reasoning models also reject `temperature`.
+ * Adapt the request from the provider's own 400 message and retry once.
+ */
+export function adaptRequestBodyForParameterError(
+  body: Record<string, unknown>,
+  detail: string,
+): Record<string, unknown> | null {
+  const lower = String(detail || "").toLowerCase();
+  const next: Record<string, unknown> = { ...body };
+  let changed = false;
+  if (
+    "max_tokens" in next &&
+    lower.includes("max_tokens") &&
+    (lower.includes("max_completion_tokens") ||
+      lower.includes("not supported") ||
+      lower.includes("unsupported"))
+  ) {
+    next.max_completion_tokens = next.max_tokens;
+    delete next.max_tokens;
+    changed = true;
+  }
+  if (
+    "max_completion_tokens" in next &&
+    /max_completion_tokens.{0,60}(not supported|unsupported)/i.test(lower) &&
+    !/max_tokens.{0,60}(not supported|unsupported)/i.test(lower)
+  ) {
+    next.max_tokens = next.max_completion_tokens;
+    delete next.max_completion_tokens;
+    changed = true;
+  }
+  if (
+    "temperature" in next &&
+    lower.includes("temperature") &&
+    (lower.includes("not supported") ||
+      lower.includes("unsupported") ||
+      lower.includes("does not support") ||
+      lower.includes("only the default"))
+  ) {
+    delete next.temperature;
+    changed = true;
+  }
+  if (
+    "top_p" in next &&
+    lower.includes("top_p") &&
+    (lower.includes("not supported") || lower.includes("unsupported"))
+  ) {
+    delete next.top_p;
+    changed = true;
+  }
+  return changed ? next : null;
+}
+
+/**
  * Send a chat completion request. Streams when `stream` is enabled and calls
  * `onDelta`; otherwise resolves with the full text.
  */
@@ -256,24 +324,37 @@ export async function chatCompletion(
     options.timeoutMs ?? (stream ? 300_000 : 180_000),
   );
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
-      },
-      body: JSON.stringify(buildRequestBody(config, messages, stream, options)),
-      signal: request.controller.signal,
-    });
-    if (!response.ok) {
-      const text = await response.text().catch(() => "");
+    let body = buildRequestBody(config, messages, stream, options);
+    let response: Response | null = null;
+    let lastErrorText = "";
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(config.apiKey
+            ? { Authorization: `Bearer ${config.apiKey}` }
+            : {}),
+        },
+        body: JSON.stringify(body),
+        signal: request.controller.signal,
+      });
+      if (response.ok) break;
+      lastErrorText = await response.text().catch(() => "");
       if (response.status === 404 || response.status === 405) {
         throw new LLMError(
           "config",
           "该服务商未提供模型列表接口，请手动填写模型名称",
         );
       }
-      throw httpError(response.status, text);
+      if (response.status !== 400 && response.status !== 422) break;
+      const adapted = adaptRequestBodyForParameterError(body, lastErrorText);
+      if (!adapted) break;
+      body = adapted;
+      log("LLM request parameter adjusted from provider error");
+    }
+    if (!response || !response.ok) {
+      throw httpError(response?.status || 400, lastErrorText);
     }
     const contentType = response.headers?.get?.("content-type") || "";
     if (!stream || !response.body || contentType.includes("application/json")) {
@@ -482,3 +563,8 @@ export async function testLLMConnection(
     };
   }
 }
+
+export const __testing = {
+  buildRequestBody,
+  adaptRequestBodyForParameterError,
+};
