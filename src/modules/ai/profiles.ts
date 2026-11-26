@@ -128,11 +128,21 @@ export function switchLLMProvider(presetId: string): {
   };
 }
 
-/** Presets that have a saved API key (for compact provider pickers). */
-export function configuredLLMProviders(): string[] {
+/** Whether a provider has enough saved data to be selectable. */
+export function isLLMProviderConfigured(presetId: string): boolean {
+  const preset = getLLMPreset(presetId);
   const profiles = loadLLMProfiles();
-  return LLM_PRESETS.map((preset) => preset.id).filter((id) => {
-    const profile = profiles[id];
-    return Boolean(profile?.apiKey || (id === "custom" && profile?.baseURL));
-  });
+  const active = (stringPref("llmPreset") || "custom") === preset.id;
+  const profile = active ? currentProfile() : profiles[preset.id] || null;
+  if (!profile) return false;
+  return Boolean(
+    (profile.baseURL || preset.baseURL) &&
+    (profile.model || preset.defaultModel) &&
+    (profile.apiKey || preset.id === "custom"),
+  );
+}
+
+/** Presets that have saved credentials (for compact provider pickers). */
+export function configuredLLMProviders(): string[] {
+  return LLM_PRESETS.map((preset) => preset.id).filter(isLLMProviderConfigured);
 }

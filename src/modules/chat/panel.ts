@@ -17,7 +17,11 @@ import { injectStylesIntoDocument } from "../../utils/styles";
 import { copyText, showProgress, toast } from "../../utils/ui";
 import { getLLMConfig, getLLMConfigError, isLLMConfigured } from "../ai/config";
 import { LLM_PRESETS } from "../ai/presets";
-import { saveCurrentLLMProfile, switchLLMProvider } from "../ai/profiles";
+import {
+  isLLMProviderConfigured,
+  saveCurrentLLMProfile,
+  switchLLMProvider,
+} from "../ai/profiles";
 import { createAbortController } from "../../utils/abort";
 import { createZoteroIcon } from "../../utils/icons";
 import { chatCompletion, LLMError } from "../ai/llm";
@@ -1530,6 +1534,29 @@ export class ChatPanel {
     }
   }
 
+  private updateProviderOptions(currentId: string): void {
+    for (const option of Array.from(
+      this.providerSelect.options,
+    ) as HTMLOptionElement[]) {
+      const preset = LLM_PRESETS.find((entry) => entry.id === option.value);
+      const configured =
+        option.value === currentId || isLLMProviderConfigured(option.value);
+      option.disabled = !configured;
+      option.textContent = configured
+        ? preset?.label || option.value
+        : `${preset?.label || option.value}${t(
+            "chat-provider-unconfigured",
+            "（未配置）",
+          )}`;
+      option.title = configured
+        ? preset?.label || option.value
+        : t(
+            "chat-provider-unconfigured-hint",
+            "请先在设置中填写该服务商的 API Key",
+          );
+    }
+  }
+
   private updateHeader(): void {
     const title = this.item ? getItemTitle(this.item) : "";
     this.paperSubEl.textContent = title
@@ -1541,6 +1568,7 @@ export class ChatPanel {
     if (this.providerSelect) {
       this.providerSelect.value = cfg.presetId;
       this.providerSelect.disabled = this.streaming;
+      this.updateProviderOptions(cfg.presetId);
     }
     if (configured) {
       this.modelBadge.textContent = truncate(cfg.model || "LLM", 22);

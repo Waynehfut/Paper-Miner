@@ -132,3 +132,5 @@ paperminer-chat-provider-label = AI provider
 paperminer-chat-provider-switched = Switched to { $provider }
 paperminer-chat-provider-needs-key = Switched to { $provider }. Add an API key for this provider in settings first.
 paperminer-chat-provider-streaming = Finish or stop the current answer before switching providers
+paperminer-chat-provider-unconfigured = (not configured)
+paperminer-chat-provider-unconfigured-hint = Add this provider's API key in settings first

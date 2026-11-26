@@ -2,6 +2,7 @@
 import { assert } from "chai";
 import { getPref, setPref } from "../src/utils/prefs";
 import {
+  isLLMProviderConfigured,
   loadLLMProfiles,
   saveCurrentLLMProfile,
   switchLLMProvider,
@@ -36,12 +37,15 @@ describe("LLM provider profiles", function () {
     setPref("llmApiKey", "deepseek-key" as never);
     setPref("llmModel", "deepseek-chat" as never);
     saveCurrentLLMProfile();
+    assert.isTrue(isLLMProviderConfigured("deepseek"));
+    assert.isFalse(isLLMProviderConfigured("openai"));
 
     const openai = switchLLMProvider("openai");
     assert.isTrue(openai.configured === false);
     setPref("llmApiKey", "openai-key" as never);
     setPref("llmModel", "gpt-4o-mini" as never);
     saveCurrentLLMProfile();
+    assert.isTrue(isLLMProviderConfigured("openai"));
 
     const back = switchLLMProvider("deepseek");
     assert.equal(back.presetId, "deepseek");

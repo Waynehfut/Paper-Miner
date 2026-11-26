@@ -51,6 +51,8 @@ export type FluentMessageId =
   | 'paperminer-chat-provider-needs-key'
   | 'paperminer-chat-provider-streaming'
   | 'paperminer-chat-provider-switched'
+  | 'paperminer-chat-provider-unconfigured'
+  | 'paperminer-chat-provider-unconfigured-hint'
   | 'paperminer-chat-quote-label'
   | 'paperminer-chat-quote-remove'
   | 'paperminer-chat-quoted'

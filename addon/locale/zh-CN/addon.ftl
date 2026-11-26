@@ -255,3 +255,5 @@ paperminer-chat-provider-label = AI 服务商
 paperminer-chat-provider-switched = 已切换到 { $provider }
 paperminer-chat-provider-needs-key = 已切换到 { $provider }，请先在设置中填写该服务商的 API Key
 paperminer-chat-provider-streaming = 当前回答生成中，请结束后再切换服务商
+paperminer-chat-provider-unconfigured = （未配置）
+paperminer-chat-provider-unconfigured-hint = 请先在设置中填写该服务商的 API Key
