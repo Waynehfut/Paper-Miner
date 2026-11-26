@@ -49,5 +49,11 @@ describe("PaperMiner startup", function () {
       ),
       `columns=${JSON.stringify(columns.map((column: any) => column.dataKey))}`,
     );
+    assert.isTrue(
+      columns.some((column: any) =>
+        String(column.dataKey).endsWith("paperminerRating"),
+      ),
+      `columns=${JSON.stringify(columns.map((column: any) => column.dataKey))}`,
+    );
   });
 });

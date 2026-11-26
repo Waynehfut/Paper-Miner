@@ -834,3 +834,43 @@
   color: var(--pm-text-muted);
   opacity: 0.5;
 }
+
+/* Five-star rating column (stored in Extra: rate: 1..5). */
+.pm-rating-cell {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+.pm-rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.pm-rating-star {
+  display: inline-block;
+  width: 15px;
+  padding: 0;
+  color: var(--pm-text-muted);
+  font-family: "Apple Symbols", "Segoe UI Symbol", sans-serif;
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.55;
+}
+
+.pm-rating-star-filled {
+  color: var(--pm-warning);
+  opacity: 1;
+}
+
+.pm-rating-cell:hover .pm-rating-star {
+  opacity: 0.9;
+}
+
+.pm-rating-cell:hover .pm-rating-star-filled {
+  color: var(--pm-warning);
+}

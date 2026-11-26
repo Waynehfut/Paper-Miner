@@ -26,6 +26,10 @@ import {
   unregisterJournalColumn,
 } from "./ui/treeColumn";
 import {
+  registerRatingColumn,
+  unregisterRatingColumn,
+} from "./ui/ratingColumn";
+import {
   registerSelectionPopup,
   unregisterSelectionPopup,
 } from "./ui/selectionPopup";
@@ -53,6 +57,11 @@ export async function initPaperMiner(): Promise<void> {
     await registerCitationColumn();
   } catch (error) {
     log("registerCitationColumn failed", error);
+  }
+  try {
+    await registerRatingColumn();
+  } catch (error) {
+    log("registerRatingColumn failed", error);
   }
   try {
     registerReaderBanner();
@@ -93,6 +102,7 @@ export async function shutdownPaperMiner(): Promise<void> {
     unregisterReaderBanner();
     await unregisterJournalColumn();
     await unregisterCitationColumn();
+    await unregisterRatingColumn();
     unregisterJournalSection();
     await pluginCache.flush();
   } catch (error) {
