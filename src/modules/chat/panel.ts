@@ -16,6 +16,8 @@ import { getNumberPref, getPref } from "../../utils/prefs";
 import { injectStylesIntoDocument } from "../../utils/styles";
 import { copyText, showProgress, toast } from "../../utils/ui";
 import { getLLMConfig, getLLMConfigError, isLLMConfigured } from "../ai/config";
+import { LLM_PRESETS } from "../ai/presets";
+import { saveCurrentLLMProfile, switchLLMProvider } from "../ai/profiles";
 import { createAbortController } from "../../utils/abort";
 import { createZoteroIcon } from "../../utils/icons";
 import { chatCompletion, LLMError } from "../ai/llm";
@@ -150,6 +152,7 @@ export class ChatPanel {
   private paperTitleEl!: HTMLElement;
   private paperSubEl!: HTMLElement;
   private modelBadge!: HTMLElement;
+  private providerSelect!: HTMLSelectElement;
   private summaryButton!: HTMLButtonElement;
   private pptButton!: HTMLButtonElement;
   private newChatButton!: HTMLButtonElement;
@@ -284,6 +287,24 @@ export class ChatPanel {
     heading.append(this.paperTitleEl, this.paperSubEl);
 
     const actions = mk(doc, "div", "pm-chat-actions");
+    this.providerSelect = mk(
+      doc,
+      "select",
+      "pm-chat-provider-select",
+    ) as HTMLSelectElement;
+    this.providerSelect.setAttribute(
+      "aria-label",
+      t("chat-provider-label", "AI 服务商"),
+    );
+    this.providerSelect.title = t("chat-provider-label", "AI 服务商");
+    for (const preset of LLM_PRESETS) {
+      const option = mk(doc, "option", "", preset.label);
+      option.value = preset.id;
+      this.providerSelect.appendChild(option);
+    }
+    this.providerSelect.addEventListener("change", () => {
+      this.switchProvider(this.providerSelect.value);
+    });
     this.modelBadge = mk(
       doc,
       "span",
@@ -307,6 +328,7 @@ export class ChatPanel {
     );
     this.closeButton = iconButton(doc, "cross", t("chat-close", "关闭面板"));
     actions.append(
+      this.providerSelect,
       this.modelBadge,
       this.summaryButton,
       this.pptButton,
@@ -1476,6 +1498,38 @@ export class ChatPanel {
     };
   }
 
+  private switchProvider(presetId: string): void {
+    if (this.streaming) {
+      toast(
+        t("chat-provider-streaming", "当前回答生成中，请结束后再切换服务商"),
+        "fail",
+      );
+      this.providerSelect.value = getLLMConfig("chat").presetId;
+      return;
+    }
+    saveCurrentLLMProfile();
+    const result = switchLLMProvider(presetId);
+    this.updateHeader();
+    if (!result.configured) {
+      toast(
+        t(
+          "chat-provider-needs-key",
+          "已切换到 {provider}，请先在设置中填写该服务商的 API Key",
+          { provider: result.label },
+        ),
+        "fail",
+        5000,
+      );
+    } else {
+      toast(
+        t("chat-provider-switched", "已切换到 {provider}", {
+          provider: result.label,
+        }),
+        "success",
+      );
+    }
+  }
+
   private updateHeader(): void {
     const title = this.item ? getItemTitle(this.item) : "";
     this.paperSubEl.textContent = title
@@ -1484,6 +1538,10 @@ export class ChatPanel {
     this.paperSubEl.title = title;
     const configured = isLLMConfigured("chat");
     const cfg = getLLMConfig("chat");
+    if (this.providerSelect) {
+      this.providerSelect.value = cfg.presetId;
+      this.providerSelect.disabled = this.streaming;
+    }
     if (configured) {
       this.modelBadge.textContent = truncate(cfg.model || "LLM", 22);
       this.modelBadge.title = `${cfg.model} · ${cfg.baseURL}`;
@@ -1505,6 +1563,9 @@ export class ChatPanel {
     this.sendButton.disabled = this.streaming || !hasText;
     this.stopButton.hidden = !this.streaming;
     this.sendButton.hidden = this.streaming;
+    if (this.providerSelect) {
+      this.providerSelect.disabled = this.streaming;
+    }
     const length = this.inputEl.value.length;
     this.countEl.textContent = length ? `${length} / ${INPUT_MAX_CHARS}` : "";
     this.countEl.classList.toggle(

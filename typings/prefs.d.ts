@@ -17,6 +17,7 @@ declare namespace _ZoteroTypes {
       "llmMaxTokens": number;
       "llmStream": boolean;
       "llmDisableThinking": boolean;
+      "llmProfiles": string;
       "llmSummaryModel": string;
       "llmTranslateModel": string;
       "llmPptModel": string;

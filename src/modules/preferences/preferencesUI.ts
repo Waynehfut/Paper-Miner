@@ -15,6 +15,7 @@ import {
 } from "../chat/skillFiles";
 import { fetchAvailableModels, testLLMConnection } from "../ai/llm";
 import { LLM_PRESETS, getLLMPreset } from "../ai/presets";
+import { switchLLMProvider } from "../ai/profiles";
 import { JOURNAL_FIELDS, DEFAULT_ENABLED_FIELDS } from "../journal/fields";
 import {
   clearJournalCache,
@@ -217,24 +218,35 @@ function populatePresets(win: Window): void {
   menulist.value = String(getPref("llmPreset") || "custom");
   menulist.addEventListener("command", () => {
     const preset = getLLMPreset(String(menulist.value));
-    setPref("llmPreset", preset.id as never);
+    const switched = switchLLMProvider(preset.id);
     const baseURL = byId<HTMLInputElement>(win, "pm-llm-baseurl");
-    if (preset.id !== "custom") {
-      setPref("llmBaseURL", preset.baseURL as never);
-      setPref("llmModel", preset.defaultModel as never);
-      if (baseURL) baseURL.value = preset.baseURL;
-      populateModelOptions(win, [preset.defaultModel], preset.defaultModel);
-    } else {
-      setPref("llmBaseURL", "" as never);
-      setPref("llmModel", "" as never);
-      if (baseURL) baseURL.value = "";
-      populateModelOptions(win, [], "");
+    const apiKey = byId<HTMLInputElement>(win, "pm-llm-apikey");
+    const model = String(getPref("llmModel") || preset.defaultModel || "");
+    if (baseURL) baseURL.value = String(getPref("llmBaseURL") || "");
+    if (apiKey) apiKey.value = String(getPref("llmApiKey") || "");
+    populateModelOptions(win, model ? [model] : [], model);
+    for (const [id, key] of [
+      ["pm-llm-summarymodel", "llmSummaryModel"],
+      ["pm-llm-translatemodel", "llmTranslateModel"],
+      ["pm-llm-pptmodel", "llmPptModel"],
+    ] as const) {
+      const input = byId<HTMLInputElement>(win, id);
+      if (input) input.value = String(getPref(key) || "");
     }
     updateThinkingCapability(win, preset);
     setStatus(
       win,
       "pm-llm-status",
-      preset.hint ? `${preset.label} · ${preset.hint}` : preset.label,
+      switched.configured
+        ? preset.hint
+          ? `${preset.label} · ${preset.hint}`
+          : preset.label
+        : t(
+            "pref-llm-profile-needs-key",
+            "已切换到 {provider}，请填写该服务商的 API Key",
+            { provider: preset.label },
+          ),
+      !switched.configured,
     );
   });
   const preset = getLLMPreset(String(getPref("llmPreset") || "custom"));

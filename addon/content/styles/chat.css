@@ -1199,3 +1199,22 @@
   border-left: 1px solid var(--pm-border);
   border-radius: 0 4px 4px 0;
 }
+
+.pm-chat-provider-select {
+  flex: 0 0 auto;
+  max-width: 108px;
+  height: 22px;
+  padding: 0 2px;
+  border: 1px solid var(--pm-border);
+  border-radius: 4px;
+  background: var(--pm-bg);
+  color: var(--pm-text-secondary);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.pm-chat-provider-select:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

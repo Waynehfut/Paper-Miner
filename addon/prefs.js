@@ -11,6 +11,7 @@ pref("llmTemperature", "0.3");
 pref("llmMaxTokens", 4096);
 pref("llmStream", true);
 pref("llmDisableThinking", true);
+pref("llmProfiles", "{}");
 pref("llmSummaryModel", "");
 pref("llmTranslateModel", "");
 pref("llmPptModel", "");

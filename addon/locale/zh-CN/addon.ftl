@@ -251,3 +251,7 @@ paperminer-rating-star = 评为 { $count } 星
 paperminer-rating-set = 已评分 { $count } 星
 paperminer-rating-cleared = 已清除评分
 paperminer-rating-failed = 评分失败
+paperminer-chat-provider-label = AI 服务商
+paperminer-chat-provider-switched = 已切换到 { $provider }
+paperminer-chat-provider-needs-key = 已切换到 { $provider }，请先在设置中填写该服务商的 API Key
+paperminer-chat-provider-streaming = 当前回答生成中，请结束后再切换服务商

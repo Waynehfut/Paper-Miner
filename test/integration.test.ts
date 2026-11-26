@@ -327,6 +327,11 @@ describe("PaperMiner reader integration", function () {
     const chatStyle = Zotero.getMainWindow().getComputedStyle(chatIcon!);
     assert.equal(chatStyle.width, "16px");
     assert.equal(chatStyle.height, "16px");
+    const providerSelect = panel!.querySelector(
+      ".pm-chat-provider-select",
+    ) as HTMLSelectElement | null;
+    assert.ok(providerSelect, "chat provider selector should be rendered");
+    assert.isAtLeast(providerSelect!.options.length, 4);
     const templateSelect = panel!.querySelector(".pm-chat-template-select");
     assert.ok(templateSelect, "chat template selector should be rendered");
     assert.isAbove(

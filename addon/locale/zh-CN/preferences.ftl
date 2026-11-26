@@ -159,3 +159,4 @@ paperminer-pref-citation-openalex-key = OpenAlex API Key（可选）
 paperminer-pref-citation-openalex-key-desc = 遇到 OpenAlex 429 时可填写 API Key 提高额度；留空则使用公共额度。
 paperminer-pref-citations-title = 引用统计
 paperminer-pref-citations-desc = 条目面板显示引用数；「他引」可打开引用列表。他引数据优先来自 OpenAlex，失败时回退 Google Scholar / OpenCitations。
+paperminer-pref-llm-profile-needs-key = 已切换到 { $provider }，请填写该服务商的 API Key

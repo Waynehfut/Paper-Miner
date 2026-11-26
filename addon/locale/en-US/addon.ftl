@@ -128,3 +128,7 @@ paperminer-rating-star = Rate { $count } stars
 paperminer-rating-set = Rated { $count } stars
 paperminer-rating-cleared = Rating cleared
 paperminer-rating-failed = Could not set rating
+paperminer-chat-provider-label = AI provider
+paperminer-chat-provider-switched = Switched to { $provider }
+paperminer-chat-provider-needs-key = Switched to { $provider }. Add an API key for this provider in settings first.
+paperminer-chat-provider-streaming = Finish or stop the current answer before switching providers

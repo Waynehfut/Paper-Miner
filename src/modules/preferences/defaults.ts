@@ -17,6 +17,7 @@ export const DEFAULT_PREFS: Record<string, string | number | boolean> = {
   llmMaxTokens: 4096,
   llmStream: true,
   llmDisableThinking: true,
+  llmProfiles: "{}",
   llmSummaryModel: "",
   llmTranslateModel: "",
   llmPptModel: "",
